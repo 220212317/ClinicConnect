@@ -18,22 +18,40 @@ A React Native mobile app connecting patients with healthcare providers — buil
 
 ## Getting Started
 
+**1. Clone and install**
 
-# 1. Clone and install
-git clone <then your repo(the one you forked)>
-Navigate to where the file is (cloned repo)
-Umzekelo, if you cloned it to desktop, uzokwenza kanje:
-cd Deskop
+Clone the repo (the one you forked) and navigate to it:
+
+```bash
+git clone https://github.com/yourusername/ClinicConnect.git
+```
+
+Then navigate into the project folder. For example, if you cloned it to your Desktop (umzekelo, ukuba uyiclone kwiDesktop):
+
+```bash
+cd Desktop
 cd ClinicConnect
 npm install
+```
 
-# 2. Start the app
-First download and install Expo Go 55 (I used SDK 55)
+**2. Set up environment variables**
 
-then run this command:
+```bash
+cp .env.example .env
+# Add your Supabase URL and anon key:
+# EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+# EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+```
+
+**3. Start the app**
+
+First download and install **Expo Go SDK 55** on your phone, then run:
+
+```bash
 npx expo start
 ```
-scan the QR code with Expo Go.
+
+Scan the QR code with Expo Go.
 
 ## Features
 
@@ -46,9 +64,8 @@ scan the QR code with Expo Go.
 **Emergency** — Real-time alerts, location tracking, first responder dispatch
 
 ## Navigation Flow
- 
+
 ![ClinicConnect Navigation Flow](https://github.com/220212317/ClinicConnect/blob/master/clinicconnect_navigation_flow.svg)
-```
 
 ## Troubleshooting
 
@@ -58,5 +75,10 @@ scan the QR code with Expo Go.
 
 **Build errors** — Run `npx expo start --clear`.
 
+---
 
 Ndicinga this guide will help you get started.
+
+## License
+
+MIT
