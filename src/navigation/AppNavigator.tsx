@@ -1,7 +1,7 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useAuth } from '../context/AuthContext';
-import LoginScreen from '../screens/auth/LoginScreen';
+import MedicalRecordScreen from '../screens/medical/MedicalRecordScreen';
 
 const Stack = createStackNavigator();
 
@@ -13,13 +13,10 @@ export default function AppNavigator() {
   }
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      {!isLoggedIn ? (
-        <Stack.Screen name="Login" component={LoginScreen} />
-      ) : (
-        
-        <Stack.Screen name="Login" component={LoginScreen} />
-      )}
-    </Stack.Navigator>
-  );
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    
+    <Stack.Screen name="MedicalRecord" component={MedicalRecordScreen} />
+  </Stack.Navigator>
+);
 }
+
