@@ -6,7 +6,8 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "install": "npx expo"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
@@ -20,6 +21,7 @@
     "expo-file-system": "~55.0.19",
     "expo-font": "~55.0.7",
     "expo-image-picker": "~55.0.20",
+    "expo-linear-gradient": "^55.0.14",
     "expo-location": "~55.1.9",
     "expo-secure-store": "~55.0.13",
     "expo-status-bar": "~55.0.6",
