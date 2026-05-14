@@ -122,7 +122,7 @@ const PatientRegistration = ({ route, navigation }: any) => {
             </View>
             <Button
               title="Continue"
-              onPress={() => navigation.navigate('LoginScreen')}
+              onPress={() => navigation.navigate('PatientHome')}
               style={styles.nextButton}
             />
           </View>
