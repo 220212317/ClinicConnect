@@ -3,6 +3,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import RegisterStep1Screen from '../screens/auth/RegisterStep1Screen';
 import RegisterStep2Screen from '../screens/auth/RegisterStep2Screen';
 import PatientHomeScreen from '../screens/patient/PatientHomeScreen';
+import NearbyClinicsScreen from '../screens/patient/NearbyClinicsScreen';
 import MedicalRecordScreen from '../screens/medical/MedicalRecordScreen';
 
 const Stack = createStackNavigator();
@@ -16,6 +17,7 @@ export default function AppNavigator() {
       <Stack.Screen name="RegisterStep1" component={RegisterStep1Screen} />
       <Stack.Screen name="RegisterStep2" component={RegisterStep2Screen} />
       <Stack.Screen name="PatientHome" component={PatientHomeScreen} />
+      <Stack.Screen name="NearbyClinics" component={NearbyClinicsScreen} />
       <Stack.Screen name="MedicalRecord" component={MedicalRecordScreen} />
     </Stack.Navigator>
   );
