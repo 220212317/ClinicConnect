@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
   // Text input field
   input: {
     borderWidth: 1,
-    borderColor: "#d0d0d0",
+    borderColor: "#d0d0d0cb",
     borderRadius: 4,
     paddingHorizontal: 10,
     paddingVertical: 9,
