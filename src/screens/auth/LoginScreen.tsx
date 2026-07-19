@@ -11,6 +11,7 @@ import {
   ScrollView,
 }
  from "react-native";
+import { useNavigation } from "@react-navigation/native";
 
 // ---------------------------------------------------------------------------
 // LoginScreen Component
@@ -26,35 +27,13 @@ import {
 // navigation and authentication logic.
 // ---------------------------------------------------------------------------
 
-interface LoginScreenProps {
-  /** Called when the user taps "Sign In" with their credentials */
-  onSignIn?: (username: string, password: string) => void;
-  /** Called when the user taps "Forgot Password?" */
-  onForgotPassword?: () => void;
-  /** Called when the user taps "Create an account" */
-  onCreateAccount?: () => void;
-  /** Called when the user taps "Sign in with staff ID" */
-  onStaffLogin?: () => void;
-}
-
-const LoginScreen: React.FC<LoginScreenProps> = ({
-  onSignIn,
-  onForgotPassword,
-  onCreateAccount,
-  onStaffLogin,
-}) => {
-  // Local state to track what the user types in each field
+const LoginScreen: React.FC = () => {
+  const navigation = useNavigation();
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
 
-  // Handle the Sign In button tap
   const handleSignIn = () => {
-    if (onSignIn) {
-      onSignIn(username, password);
-    } else {
-      // Placeholder — remove once you wire up real authentication
-      console.log("Sign In tapped:", { username, password });
-    }
+    navigation.navigate("PatientHome" as never);
   };
 
   return (
@@ -122,7 +101,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
 
               {/* "FORGOT PASSWORD?" link — right-aligned below the password field */}
               <TouchableOpacity
-                onPress={onForgotPassword}
+                onPress={() => navigation.navigate("ForgotPassword" as never)}
                 style={styles.forgotWrapper}
               >
                 <Text style={styles.forgotText}>FORGOT PASSWORD?</Text>
@@ -138,14 +117,14 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
             <Text style={styles.orDivider}>OR</Text>
 
             {/* CREATE AN ACCOUNT BUTTON — outlined style */}
-            <TouchableOpacity style={styles.btnSecondary} onPress={onCreateAccount}>
+            <TouchableOpacity style={styles.btnSecondary} onPress={() => navigation.navigate("RegisterStep1" as never)}>
               <Text style={styles.btnSecondaryText}>Create an account</Text>
             </TouchableOpacity>
 
             {/* Staff login line at the bottom */}
             <View style={styles.staffRow}>
               <Text style={styles.staffText}>Staff? </Text>
-              <TouchableOpacity onPress={onStaffLogin}>
+              <TouchableOpacity onPress={() => { /* TODO: Staff login */ }}>
                 <Text style={styles.staffLink}>Sign in with staff ID</Text>
               </TouchableOpacity>
             </View>
