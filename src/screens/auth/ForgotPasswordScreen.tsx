@@ -10,6 +10,7 @@ import {
   Platform,
   ScrollView,
 } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 
 // ---------------------------------------------------------------------------
 // ForgotPasswordScreen Component — Step 1: Enter Email
@@ -21,31 +22,12 @@ import {
 // Flow: Login → [THIS SCREEN] → OTP Entry → New Password
 // ---------------------------------------------------------------------------
 
-interface ForgotPasswordScreenProps {
-  /** Called when the user taps "Send OTP" with their email address */
-  onSendOtp?: (email: string) => void;
-  /** Called when the user taps the back arrow to go back to Login */
-  onBack?: () => void;
-  /** Called when the user taps "Sign in" at the bottom */
-  onSignIn?: () => void;
-}
-
-const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({
-  onSendOtp,
-  onBack,
-  onSignIn,
-}) => {
-  // Local state to track what the user types in the email field
+const ForgotPasswordScreen: React.FC = () => {
+  const navigation = useNavigation();
   const [email, setEmail] = useState<string>("");
 
-  // Handle the "Send OTP" button tap
   const handleSendOtp = () => {
-    if (onSendOtp) {
-      onSendOtp(email);
-    } else {
-      // Placeholder — remove once you wire up your API call
-      console.log("Send OTP tapped for email:", email);
-    }
+    console.log("Send OTP tapped for email:", email);
   };
 
   return (
@@ -66,7 +48,7 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({
             <View style={styles.header}>
 
               {/* Back arrow button — takes the user back to the Login screen */}
-              <TouchableOpacity onPress={onBack} style={styles.backButton}>
+              <TouchableOpacity onPress={() => navigation.navigate("Login" as never)} style={styles.backButton}>
                 <Text style={styles.backArrow}>←</Text>
                 <Text style={styles.backText}>Reset password</Text>
               </TouchableOpacity>
@@ -111,7 +93,7 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({
               {/* "Remembered it? Sign in" link at the bottom */}
               <View style={styles.signInRow}>
                 <Text style={styles.signInText}>Remembered it? </Text>
-                <TouchableOpacity onPress={onSignIn}>
+                <TouchableOpacity onPress={() => navigation.navigate("Login" as never)}>
                   <Text style={styles.signInLink}>Sign in</Text>
                 </TouchableOpacity>
               </View>
