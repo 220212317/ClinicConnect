@@ -1,3 +1,4 @@
+// src/screens/auth/ForgotPasswordScreen.tsx
 import React, { useState } from "react";
 import {
   View,
@@ -9,113 +10,120 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../../navigation/types";
+import { authApi } from "../../services/api";
 
-// ---------------------------------------------------------------------------
-// ForgotPasswordScreen Component — Step 1: Enter Email
-//
-// This is the first step of the forgot password flow.
-// The user enters their registered email address and taps "Send OTP".
-// An OTP (One Time Password) will then be sent to that email.
-//
-// Flow: Login → [THIS SCREEN] → OTP Entry → New Password
-// ---------------------------------------------------------------------------
+type ForgotPasswordNavigationProp = NativeStackNavigationProp<RootStackParamList, 'ForgotPassword'>;
 
-interface ForgotPasswordScreenProps {
-  /** Called when the user taps "Send OTP" with their email address */
-  onSendOtp?: (email: string) => void;
-  /** Called when the user taps the back arrow to go back to Login */
-  onBack?: () => void;
-  /** Called when the user taps "Sign in" at the bottom */
-  onSignIn?: () => void;
-}
-
-const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({
-  onSendOtp,
-  onBack,
-  onSignIn,
-}) => {
-  // Local state to track what the user types in the email field
+const ForgotPasswordScreen: React.FC = () => {
+  const navigation = useNavigation<ForgotPasswordNavigationProp>();
   const [email, setEmail] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
-  // Handle the "Send OTP" button tap
-  const handleSendOtp = () => {
-    if (onSendOtp) {
-      onSendOtp(email);
-    } else {
-      // Placeholder — remove once you wire up your API call
-      console.log("Send OTP tapped for email:", email);
+  const handleSendOtp = async () => {
+    if (!email.trim()) {
+      Alert.alert("Error", "Please enter your email address");
+      return;
+    }
+
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      Alert.alert("Error", "Please enter a valid email address");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await authApi.forgotPassword(email);
+      setIsSuccess(true);
+      Alert.alert(
+        "OTP Sent",
+        "Please check your email for the OTP code to reset your password.",
+        [{ text: "OK" }]
+      );
+    } catch (error: any) {
+      Alert.alert("Error", error.message || "Failed to send OTP");
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  return (
-    // SafeAreaView keeps content within safe screen boundaries (notch, home bar, etc.)
-    <SafeAreaView style={styles.safeArea}>
+  const handleBack = () => {
+    navigation.goBack();
+  };
 
-      {/* KeyboardAvoidingView pushes content up when the keyboard appears */}
+  const handleSignIn = () => {
+    navigation.navigate("Login");
+  };
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <ScrollView contentContainerStyle={styles.scrollContainer}>
-
-          {/* ── CARD CONTAINER ── */}
           <View style={styles.card}>
-
-            {/* ── TOP HEADER: warm beige background with back arrow ── */}
             <View style={styles.header}>
-
-              {/* Back arrow button — takes the user back to the Login screen */}
-              <TouchableOpacity onPress={onBack} style={styles.backButton}>
+              <TouchableOpacity onPress={handleBack} style={styles.backButton}>
                 <Text style={styles.backArrow}>←</Text>
                 <Text style={styles.backText}>Reset password</Text>
               </TouchableOpacity>
 
-              {/* Lock icon — represented with an emoji for simplicity.
-                  You can swap this with an icon library like @expo/vector-icons */}
               <View style={styles.iconWrapper}>
                 <Text style={styles.lockIcon}>🔒</Text>
               </View>
             </View>
 
-            {/* ── BODY: white section with form ── */}
             <View style={styles.body}>
-
-              {/* Main heading */}
               <Text style={styles.heading}>Forgot your password?</Text>
 
-              {/* Subtitle instruction text */}
               <Text style={styles.subtitle}>
-                Enter your registered email and we'll send you OTP
+                {isSuccess 
+                  ? "We've sent a verification code to your email. Please check your inbox." 
+                  : "Enter your registered email and we'll send you OTP"}
               </Text>
 
-              {/* EMAIL ADDRESS FIELD */}
               <View style={styles.formGroup}>
                 <Text style={styles.label}>Email address</Text>
                 <TextInput
                   style={styles.input}
                   value={email}
-                  onChangeText={setEmail}       // updates state as user types
-                  keyboardType="email-address"  // shows email-friendly keyboard
-                  autoCapitalize="none"         // emails are lowercase
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
                   autoCorrect={false}
-                  placeholder=""
+                  editable={!isSuccess && !isLoading}
+                  placeholder="Enter your email"
+                  placeholderTextColor="#999"
                 />
               </View>
 
-              {/* SEND OTP BUTTON — dark navy, full width */}
-              <TouchableOpacity style={styles.btnPrimary} onPress={handleSendOtp}>
-                <Text style={styles.btnPrimaryText}>Send OTP</Text>
+              <TouchableOpacity 
+                style={[styles.btnPrimary, (isLoading || isSuccess) && styles.btnDisabled]} 
+                onPress={handleSendOtp}
+                disabled={isLoading || isSuccess}
+              >
+                {isLoading ? (
+                  <ActivityIndicator color="#ffffff" />
+                ) : (
+                  <Text style={styles.btnPrimaryText}>
+                    {isSuccess ? "OTP Sent ✓" : "Send OTP"}
+                  </Text>
+                )}
               </TouchableOpacity>
 
-              {/* "Remembered it? Sign in" link at the bottom */}
               <View style={styles.signInRow}>
                 <Text style={styles.signInText}>Remembered it? </Text>
-                <TouchableOpacity onPress={onSignIn}>
+                <TouchableOpacity onPress={handleSignIn}>
                   <Text style={styles.signInLink}>Sign in</Text>
                 </TouchableOpacity>
               </View>
-
             </View>
           </View>
         </ScrollView>
@@ -124,29 +132,20 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({
   );
 };
 
-// ---------------------------------------------------------------------------
-// Styles
-// ---------------------------------------------------------------------------
 const styles = StyleSheet.create({
-
   safeArea: {
     flex: 1,
-    backgroundColor: "#e8d5b7", // beige background behind the card
+    backgroundColor: "#e8d5b7",
   },
-
   flex: {
     flex: 1,
   },
-
-  // Centers the card vertically and horizontally
   scrollContainer: {
     flexGrow: 1,
     justifyContent: "center",
     alignItems: "center",
     paddingVertical: 40,
   },
-
-  // The card that wraps both header and body
   card: {
     width: 300,
     borderRadius: 12,
@@ -155,39 +154,31 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.18,
     shadowRadius: 16,
-    elevation: 8, // shadow for Android
+    elevation: 8,
   },
-
-  // ── Header ──────────────────────────────────────────────────────────────
   header: {
-    backgroundColor: "#ffffff", // warm beige
+    backgroundColor: "#ffffff",
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 24,
     alignItems: "center",
   },
-
-  // Back button row: arrow + "Reset password" label
   backButton: {
     flexDirection: "row",
     alignItems: "center",
-    alignSelf: "flex-start", // pins it to the left
+    alignSelf: "flex-start",
     marginBottom: 20,
   },
-
   backArrow: {
     fontSize: 18,
     color: "#1e2a3a",
     marginRight: 6,
   },
-
   backText: {
     fontSize: 14,
     fontWeight: "600",
     color: "#1e2a3a",
   },
-
-  // Circular background behind the lock icon
   iconWrapper: {
     width: 64,
     height: 64,
@@ -196,20 +187,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-
   lockIcon: {
     fontSize: 28,
   },
-
-  // ── Body ────────────────────────────────────────────────────────────────
   body: {
     backgroundColor: "#ffffff",
     paddingHorizontal: 24,
     paddingTop: 24,
     paddingBottom: 24,
-    alignItems: "center", // centers heading and subtitle
+    alignItems: "center",
   },
-
   heading: {
     fontSize: 16,
     fontWeight: "700",
@@ -217,7 +204,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     textAlign: "center",
   },
-
   subtitle: {
     fontSize: 12,
     color: "#666666",
@@ -225,19 +211,15 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     lineHeight: 18,
   },
-
-  // Wraps the label + input — full width
   formGroup: {
     width: "100%",
     marginBottom: 20,
   },
-
   label: {
     fontSize: 12,
     color: "#444444",
     marginBottom: 5,
   },
-
   input: {
     borderWidth: 1,
     borderColor: "#d0d0d0",
@@ -248,8 +230,6 @@ const styles = StyleSheet.create({
     color: "#1e2a3a",
     width: "100%",
   },
-
-  // Primary button — dark navy, full width
   btnPrimary: {
     width: "100%",
     backgroundColor: "#1e2a3a",
@@ -258,25 +238,23 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 20,
   },
-
+  btnDisabled: {
+    opacity: 0.6,
+  },
   btnPrimaryText: {
     color: "#ffffff",
     fontSize: 14,
     fontWeight: "600",
   },
-
-  // "Remembered it? Sign in" row
   signInRow: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
   },
-
   signInText: {
     fontSize: 12,
     color: "#666666",
   },
-
   signInLink: {
     fontSize: 12,
     fontWeight: "700",
