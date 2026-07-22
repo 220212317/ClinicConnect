@@ -30,6 +30,9 @@ export type RootStackParamList = {
   ClinicDetailsScreen: { clinicId: string };
   ServiceManagement: undefined;
   TimeSlotManagement: undefined;
+
+  DoctorHome: undefined;
+  NurseHome: undefined;
 };
 
 declare global {
