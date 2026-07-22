@@ -1,6 +1,4 @@
-// src/navigation/AppNavigator.tsx
 import React from 'react';
-import { ActivityIndicator, View } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { ActivityIndicator, View, Text, StyleSheet } from 'react-native';
 
@@ -22,7 +20,7 @@ import HealthTipsScreen from '../screens/patient/HealthTipsScreen';
 import AlertsScreen from '../screens/patient/AlertsScreen';
 import BookAppointmentScreen from '../screens/appointments/BookAppointmentScreen';
 import AppointmentDetailScreen from '../screens/appointments/AppointmentDetailScreen';
-import ClinicDetailsScreen from '../screens/patient/ClinicDetailScreen';
+import PatientClinicDetailScreen from '../screens/patient/ClinicDetailScreen';
 
 // Admin Screens
 import AdminDashboardScreen from '../screens/admin/AdminDashboardScreen';
@@ -30,9 +28,13 @@ import StaffListScreen from '../screens/admin/StaffListScreen';
 import StaffDetailsScreen from '../screens/admin/StaffDetailsScreen';
 import AddStaffScreen from '../screens/admin/AddStaffScreen';
 import ClinicManagementScreen from '../screens/admin/ClinicManagementScreen';
-import ClinicDetailsScreenAdmin from '../screens/admin/ClinicDetailsScreen';
+import AdminClinicDetailsScreen from '../screens/admin/ClinicDetailsScreen';
 import ServiceManagementScreen from '../screens/admin/ServicesManagementScreen';
 import TimeSlotManagementScreen from '../screens/admin/TimeSlotManagementScreen';
+
+// Staff Screens
+import DoctorHomeScreen from '../screens/staff/DoctorHomeScreen';
+import NurseHomeScreen from '../screens/staff/NurseHomeScreen';
 
 import { RootStackParamList } from './types';
 import { useAuth } from '../context/AuthContext';
@@ -57,37 +59,46 @@ export default function AppNavigator() {
         headerShown: false,
         cardStyle: { backgroundColor: '#F5F5F5' },
       }}
-      initialRouteName={user ? 'PatientHome' : 'Login'}
     >
-      {/* Auth Screens */}
-      <Stack.Screen name="Login" component={LoginScreen} />
-      <Stack.Screen name="StaffLogin" component={StaffLoginScreen} />
-      <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-      <Stack.Screen name="RegisterStep1" component={RegisterStep1Screen} />
-      <Stack.Screen name="RegisterStep2" component={RegisterStep2Screen} />
+      {user ? (
+        <Stack.Group>
+          {/* Patient Screens */}
+          <Stack.Screen name="PatientHome" component={PatientHomeScreen} />
+          <Stack.Screen name="PatientProfile" component={PatientProfileScreen} />
+          <Stack.Screen name="MedicalRecord" component={MedicalRecordScreen} />
+          <Stack.Screen name="NearbyClinics" component={NearbyClinicsScreen} />
+          <Stack.Screen name="BookAppointment" component={BookAppointmentScreen} initialParams={{ clinicId: '' }} />
+          <Stack.Screen name="AppointmentDetail" component={AppointmentDetailScreen} initialParams={{ appointmentId: '' }} />
+          <Stack.Screen name="Notifications" component={NotificationsScreen} />
+          <Stack.Screen name="Emergency" component={EmergencyScreen} />
+          <Stack.Screen name="HealthTips" component={HealthTipsScreen} />
+          <Stack.Screen name="Alerts" component={AlertsScreen} />
+          <Stack.Screen name="ClinicDetails" component={PatientClinicDetailScreen} initialParams={{ clinicId: '' }} />
 
-      {/* Patient Screens */}
-      <Stack.Screen name="PatientHome" component={PatientHomeScreen} />
-      <Stack.Screen name="PatientProfile" component={PatientProfileScreen} />
-      <Stack.Screen name="MedicalRecord" component={MedicalRecordScreen} />
-      <Stack.Screen name="NearbyClinics" component={NearbyClinicsScreen} />
-      <Stack.Screen name="BookAppointment" component={BookAppointmentScreen} initialParams={{ clinicId: '' }} />
-      <Stack.Screen name="AppointmentDetail" component={AppointmentDetailScreen} initialParams={{ appointmentId: '' }} />
-      <Stack.Screen name="Notifications" component={NotificationsScreen} />
-      <Stack.Screen name="Emergency" component={EmergencyScreen} />
-      <Stack.Screen name="HealthTips" component={HealthTipsScreen} />
-      <Stack.Screen name="Alerts" component={AlertsScreen} />
-      <Stack.Screen name="ClinicDetails" component={ClinicDetailsScreen} initialParams={{ clinicId: '' }} />
+          {/* Admin Screens */}
+          <Stack.Screen name="AdminDashboard" component={AdminDashboardScreen} />
+          <Stack.Screen name="StaffList" component={StaffListScreen} />
+          <Stack.Screen name="StaffDetails" component={StaffDetailsScreen} initialParams={{ staffId: '' }} />
+          <Stack.Screen name="AddStaff" component={AddStaffScreen} />
+          <Stack.Screen name="ClinicManagement" component={ClinicManagementScreen} />
+          <Stack.Screen name="ClinicDetailsScreen" component={AdminClinicDetailsScreen} initialParams={{ clinicId: '' }} />
+          <Stack.Screen name="ServiceManagement" component={ServiceManagementScreen} />
+          <Stack.Screen name="TimeSlotManagement" component={TimeSlotManagementScreen} />
 
-      {/* Admin Screens */}
-      <Stack.Screen name="AdminDashboard" component={AdminDashboardScreen} />
-      <Stack.Screen name="StaffList" component={StaffListScreen} />
-      <Stack.Screen name="StaffDetails" component={StaffDetailsScreen} initialParams={{ staffId: '' }} />
-      <Stack.Screen name="AddStaff" component={AddStaffScreen} />
-      <Stack.Screen name="ClinicManagement" component={ClinicManagementScreen} />
-      <Stack.Screen name="ClinicDetailsScreen" component={ClinicDetailsScreenAdmin} initialParams={{ clinicId: '' }} />
-      <Stack.Screen name="ServiceManagement" component={ServiceManagementScreen} />
-      <Stack.Screen name="TimeSlotManagement" component={TimeSlotManagementScreen} />
+          {/* Staff Screens */}
+          <Stack.Screen name="DoctorHome" component={DoctorHomeScreen} />
+          <Stack.Screen name="NurseHome" component={NurseHomeScreen} />
+        </Stack.Group>
+      ) : (
+        <Stack.Group>
+          {/* Auth Screens */}
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="StaffLogin" component={StaffLoginScreen} />
+          <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+          <Stack.Screen name="RegisterStep1" component={RegisterStep1Screen} />
+          <Stack.Screen name="RegisterStep2" component={RegisterStep2Screen} />
+        </Stack.Group>
+      )}
     </Stack.Navigator>
   );
 }
