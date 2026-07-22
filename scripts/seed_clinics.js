@@ -1,6 +1,3 @@
-// scripts/seed_clinics.js
-// Run with: node scripts/seed_clinics.js
-
 const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config();
 
@@ -9,7 +6,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-// Real clinic data from City of Cape Town
+
 const clinics = [
   // Clinics
   { clinicName: 'Adriaanse Clinic', address: '40th Avenue, Clarke Estate', phone: '021 444 2396/7', facilityType: 'Clinic' },
@@ -74,7 +71,7 @@ const clinics = [
   { clinicName: 'Wynberg Clinic', address: 'Lower Maynard Rd, Wynberg', phone: '021 444 6613/14', facilityType: 'Clinic' },
   { clinicName: 'Zakhele Clinic', address: 'A544 Zakhele Road, Khayelitsha', phone: '021 444 5505/4', facilityType: 'Clinic' },
   
-  // Community Day Centres (CDCs)
+  
   { clinicName: 'Albow Gardens Community Day Centre', address: '2 Albow Road, Milnerton', phone: '021 444 5949/50', facilityType: 'CDC' },
   { clinicName: 'Dr Ivan Toms Community Day Centre', address: 'Cnr Ngubelani and Umabashe St, Ext 6, Mfuleni', phone: '021 400 3600', facilityType: 'CDC' },
   { clinicName: "Gordon's Bay Community Day Centre", address: 'Cnr Mountainside Blvd and Sir Lowry\'s Pass Rd, Gordons Bay', phone: '021 444 3919', facilityType: 'CDC' },
