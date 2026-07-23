@@ -1,32 +1,25 @@
 name: CI
-
-ON: 
+on:
   pull_request:
     branches: [main]
   push:
     branches: [main]
-
-    jobs:
+jobs:
   lint-and-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-
       - name: Install dependencies
-        run: nmp ci
-
+        run: npm ci
       - name: Type check
         run: npx tsc --noEmit
-
       - name: Lint
         run: npm run lint --if-present
-        
       - name: Run tests
         run: npm test --if-present -- --watchAll=false
       - name: Expo config check
