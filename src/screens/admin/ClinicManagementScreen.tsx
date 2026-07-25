@@ -17,7 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../context/ThemeContext';
-import { supabase } from '../../services/supabase/client';
+import { clinicApi } from '../../services/api/clinic';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
 
@@ -50,13 +50,8 @@ export default function ClinicManagementScreen() {
   const fetchClinics = async () => {
     try {
       setIsLoading(true);
-      const { data, error } = await supabase
-        .from('clinics')
-        .select('*')
-        .order('clinic_name', { ascending: true });
-
-      if (error) throw error;
-      setClinics(data || []);
+      const data = await clinicApi.getAllForAdmin();
+      setClinics(data as unknown as Clinic[]);
     } catch (error) {
       console.error('Failed to fetch clinics:', error);
       Alert.alert('Error', 'Failed to load clinics');
@@ -88,10 +83,10 @@ export default function ClinicManagementScreen() {
     setModalVisible(true);
   };
 
-  const handleDelete = (clinicId: string, clinicName: string) => {
+  const handleDelete = (clinicId: string, clinic_name: string) => {
     Alert.alert(
       'Delete Clinic',
-      `Are you sure you want to delete ${clinicName}? This will also remove all associated services and time slots.`,
+      `Are you sure you want to delete ${clinic_name}? It will be hidden from patients but its history (past appointments/records) is kept. Clinics with active appointments can't be deleted.`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -99,12 +94,7 @@ export default function ClinicManagementScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              const { error } = await supabase
-                .from('clinics')
-                .update({ status: 'inactive' })
-                .eq('id', clinicId);
-              
-              if (error) throw error;
+              await clinicApi.delete(clinicId);
               await fetchClinics();
               Alert.alert('Success', 'Clinic deleted successfully');
             } catch (error: any) {
@@ -131,31 +121,21 @@ export default function ClinicManagementScreen() {
 
     try {
       if (editingClinic) {
-        const { error } = await supabase
-          .from('clinics')
-          .update({
-            clinic_name: form.clinic_name,
-            location: form.location,
-            operating_hours: form.operating_hours,
-            contact_details: form.contact_details,
-          })
-          .eq('id', editingClinic.id);
-        
-        if (error) throw error;
+        await clinicApi.update(editingClinic.id, {
+          clinic_name: form.clinic_name,
+          location: form.location,
+          operating_hours: form.operating_hours,
+          contact_details: form.contact_details,
+        });
       } else {
-        const { error } = await supabase
-          .from('clinics')
-          .insert({
-            clinic_name: form.clinic_name,
-            location: form.location,
-            operating_hours: form.operating_hours,
-            contact_details: form.contact_details,
-            status: 'active',
-          });
-        
-        if (error) throw error;
+        await clinicApi.create({
+          clinic_name: form.clinic_name,
+          location: form.location,
+          operating_hours: form.operating_hours,
+          contact_details: form.contact_details,
+        });
       }
-      
+
       setModalVisible(false);
       setEditingClinic(null);
       setForm({ clinic_name: '', location: '', operating_hours: '', contact_details: '' });
@@ -170,7 +150,7 @@ export default function ClinicManagementScreen() {
     <View key={clinic.id} style={[styles.clinicCard, { backgroundColor: theme.colors.surface }]}>
       <View style={styles.clinicHeader}>
         <View style={styles.clinicInfo}>
-          <Text style={[styles.clinicName, { color: theme.colors.text }]}>
+          <Text style={[styles.clinic_name, { color: theme.colors.text }]}>
             {clinic.clinic_name}
           </Text>
           <View style={[styles.statusBadge, { backgroundColor: clinic.status === 'active' ? '#4CAF50' : '#9E9E9E' }]}>
@@ -405,7 +385,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   clinicInfo: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
-  clinicName: { fontSize: 16, fontWeight: '600' },
+  clinic_name: { fontSize: 16, fontWeight: '600' },
   statusBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 12 },
   statusText: { color: '#FFF', fontSize: 10, fontWeight: '600' },
   actionButtons: { flexDirection: 'row', gap: 6 },
