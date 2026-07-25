@@ -206,7 +206,7 @@ export default function ClinicDetailsScreen() {
         clinic.services.map((service) => (
           <View key={service.id} style={[styles.serviceCard, { backgroundColor: theme.colors.surface }]}>
             <View style={styles.serviceHeader}>
-              <Text style={[styles.serviceName, { color: theme.colors.text }]}>
+              <Text style={[styles.service_name, { color: theme.colors.text }]}>
                 {service.service_name}
               </Text>
               <Text style={[styles.serviceDuration, { color: theme.colors.textSecondary }]}>
@@ -474,7 +474,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  serviceName: { fontSize: 14, fontWeight: '500' },
+  service_name: { fontSize: 14, fontWeight: '500' },
   serviceDuration: { fontSize: 12 },
   serviceDescription: { fontSize: 13, marginTop: 4 },
   staffCard: {
