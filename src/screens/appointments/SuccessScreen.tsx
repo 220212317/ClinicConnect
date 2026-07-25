@@ -6,12 +6,9 @@ import {
   SafeAreaView,
 } from "react-native";
 
-// SuccessScreen Component — Successfully Booked
-// This screen is shown after a patient successfully books an appointment.
-
 
 interface SuccessScreenProps {
-  
+  message?: string;
 }
 
 const SuccessScreen: React.FC<SuccessScreenProps> = ({
