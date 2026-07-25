@@ -99,14 +99,15 @@ async function seedClinics() {
       const { error } = await supabase
         .from('clinics')
         .upsert({
-          clinicName: clinic.clinicName,
+          clinic_name: clinic.clinicName,
           address: clinic.address,
+          location: clinic.address,
           phone: clinic.phone,
-          facilityType: clinic.facilityType,
+          facility_type: clinic.facilityType,
           status: 'active',
-          operatingHours: 'Monday to Friday: 07:30 - 16:30',
-          contactDetails: clinic.phone,
-        }, { onConflict: 'clinicName' });
+          operating_hours: 'Monday to Friday: 07:30 - 16:30',
+          contact_details: clinic.phone,
+        }, { onConflict: 'clinic_name' });
 
       if (error) {
         console.error(`Error upserting ${clinic.clinicName}:`, error);
