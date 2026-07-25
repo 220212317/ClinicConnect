@@ -34,7 +34,7 @@ async function geocodeClinics() {
   // Get clinics without coordinates
   const { data: clinics, error } = await supabase
     .from('clinics')
-    .select('id, clinicName, address')
+    .select('id, clinic_name, address')
     .is('latitude', null)
     .eq('status', 'active');
 
@@ -50,7 +50,7 @@ async function geocodeClinics() {
 
   for (const clinic of clinics) {
     try {
-      console.log(`Geocoding: ${clinic.clinicName}...`);
+      console.log(`Geocoding: ${clinic.clinic_name}...`);
       const coords = await geocode(clinic.address);
       
       if (coords) {
@@ -63,21 +63,21 @@ async function geocodeClinics() {
           .eq('id', clinic.id);
 
         if (updateError) {
-          console.error(`Error updating ${clinic.clinicName}:`, updateError);
+          console.error(`Error updating ${clinic.clinic_name}:`, updateError);
           errorCount++;
         } else {
-          console.log(`✓ ${clinic.clinicName} -> ${coords.lat}, ${coords.lng}`);
+          console.log(`✓ ${clinic.clinic_name} -> ${coords.lat}, ${coords.lng}`);
           successCount++;
         }
       } else {
-        console.log(`✗ No coordinates found for ${clinic.clinicName}`);
+        console.log(`✗ No coordinates found for ${clinic.clinic_name}`);
         errorCount++;
       }
 
       // Wait 1.1 seconds (Nominatim rate limit)
       await new Promise(resolve => setTimeout(resolve, 1100));
     } catch (err) {
-      console.error(`Error geocoding ${clinic.clinicName}:`, err.message);
+      console.error(`Error geocoding ${clinic.clinic_name}:`, err.message);
       errorCount++;
     }
   }
