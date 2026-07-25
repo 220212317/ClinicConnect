@@ -17,7 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../context/ThemeContext';
-import { useApi } from '../../context/ApiContext';
+import { clinicApi } from '../../services/api/clinic';
 
 interface ClinicDetailsData {
   id: string;
@@ -50,7 +50,6 @@ export default function ClinicDetailsScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const { theme } = useTheme();
-  const { api } = useApi();
   const { width } = useWindowDimensions();
   const { clinicId } = route.params as { clinicId: string };
   const [clinic, setClinic] = useState<ClinicDetailsData | null>(null);
@@ -63,10 +62,36 @@ export default function ClinicDetailsScreen() {
 
   const fetchClinicDetails = async () => {
     try {
-      const response = await api.client.get(`/clinics/${clinicId}/details`);
-      setClinic(response.data);
+      const details = await clinicApi.getDetails(clinicId);
+      setClinic({
+        id: details.id,
+        clinicName: details.clinic_name,
+        location: details.location,
+        operatingHours: details.operating_hours || '',
+        contactDetails: details.contact_details || '',
+        status: details.status,
+        services: details.services.map((s) => ({
+          id: s.id,
+          serviceName: s.service_name,
+          estimatedDuration: s.estimated_duration || '',
+        })),
+        staff: details.staff.map((s) => ({
+          id: s.id,
+          firstName: s.first_name,
+          lastName: s.last_name,
+          role: s.role,
+        })),
+        timeSlots: details.time_slots.map((t) => ({
+          id: t.id,
+          date: t.date,
+          startTime: t.start_time,
+          endTime: t.end_time,
+          isAvailable: t.is_available,
+        })),
+      });
     } catch (error) {
       console.error('Failed to fetch clinic details:', error);
+      Alert.alert('Error', 'Failed to load clinic details');
     } finally {
       setIsLoading(false);
       setRefreshing(false);
