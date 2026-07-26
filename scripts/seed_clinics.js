@@ -1,11 +1,31 @@
+// scripts/seed_clinics.js
 const { createClient } = require('@supabase/supabase-js');
+const ws = require('ws');
 require('dotenv').config();
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+// Support standard Supabase env names as well as Expo/React Native naming conventions
+const supabaseUrl = 
+  process.env.SUPABASE_URL || 
+  process.env.EXPO_PUBLIC_SUPABASE_URL || 
+  process.env.REACT_NATIVE_SUPABASE_URL;
 
+const supabaseKey = 
+  process.env.SUPABASE_SERVICE_ROLE_KEY || 
+  process.env.EXPO_PUBLIC_SUPABASE_SERVICE_ROLE_KEY || 
+  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseKey) {
+  console.error('\n❌ Missing Supabase Environment Variables!');
+  console.error('Please ensure SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (or EXPO_PUBLIC_* equivalents) exist in your .env file.\n');
+  process.exit(1);
+}
+
+// Initialize Supabase client with ws transport for compatibility
+const supabase = createClient(supabaseUrl, supabaseKey, {
+  realtime: {
+    transport: ws,
+  },
+});
 
 const clinics = [
   // Clinics
@@ -71,7 +91,7 @@ const clinics = [
   { clinicName: 'Wynberg Clinic', address: 'Lower Maynard Rd, Wynberg', phone: '021 444 6613/14', facilityType: 'Clinic' },
   { clinicName: 'Zakhele Clinic', address: 'A544 Zakhele Road, Khayelitsha', phone: '021 444 5505/4', facilityType: 'Clinic' },
   
-  
+  // Community Day Centres
   { clinicName: 'Albow Gardens Community Day Centre', address: '2 Albow Road, Milnerton', phone: '021 444 5949/50', facilityType: 'CDC' },
   { clinicName: 'Dr Ivan Toms Community Day Centre', address: 'Cnr Ngubelani and Umabashe St, Ext 6, Mfuleni', phone: '021 400 3600', facilityType: 'CDC' },
   { clinicName: "Gordon's Bay Community Day Centre", address: 'Cnr Mountainside Blvd and Sir Lowry\'s Pass Rd, Gordons Bay', phone: '021 444 3919', facilityType: 'CDC' },
@@ -89,16 +109,17 @@ const clinics = [
 ];
 
 async function seedClinics() {
-  console.log(`Seeding ${clinics.length} clinics...`);
+  console.log(`Seeding ${clinics.length} clinics using: ${supabaseUrl}...`);
   
   let successCount = 0;
   let errorCount = 0;
 
   for (const clinic of clinics) {
     try {
+      // Changed to .insert() to bypass unique constraint checks
       const { error } = await supabase
         .from('clinics')
-        .upsert({
+        .insert({
           clinic_name: clinic.clinicName,
           address: clinic.address,
           location: clinic.address,
@@ -107,22 +128,22 @@ async function seedClinics() {
           status: 'active',
           operating_hours: 'Monday to Friday: 07:30 - 16:30',
           contact_details: clinic.phone,
-        }, { onConflict: 'clinic_name' });
+        });
 
       if (error) {
-        console.error(`Error upserting ${clinic.clinicName}:`, error);
+        console.error(`Error inserting ${clinic.clinicName}:`, error.message || error);
         errorCount++;
       } else {
         console.log(`✓ ${clinic.clinicName}`);
         successCount++;
       }
     } catch (err) {
-      console.error(`Failed to upsert ${clinic.clinicName}:`, err);
+      console.error(`Failed to insert ${clinic.clinicName}:`, err.message || err);
       errorCount++;
     }
   }
 
-  console.log(`\n✅ Seeding complete: ${successCount} clinics upserted, ${errorCount} errors`);
+  console.log(`\n✅ Seeding complete: ${successCount} clinics inserted, ${errorCount} errors`);
 }
 
 seedClinics().catch(console.error);
