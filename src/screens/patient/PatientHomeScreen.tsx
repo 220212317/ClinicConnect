@@ -217,7 +217,7 @@ export default function PatientHomeScreen() {
   const handleEmergencyPress = () => navigation.navigate('Emergency');
   
   // Updated: Navigate to PatientProfile when avatar is clicked
-  const handleAvatarPress = () => navigation.navigate('PatientProfile');
+  const handleAvatarPress = () => navigation.navigate('PatientProfile', {});
 
   const handleQuickAction = (action: string) => {
     switch (action) {
@@ -234,10 +234,10 @@ export default function PatientHomeScreen() {
         navigation.navigate('Alerts');
         break;
       case 'profile':
-        navigation.navigate('PatientProfile');
+        navigation.navigate('PatientProfile', {});
         break;
       case 'records':
-        navigation.navigate('MedicalRecord');
+        navigation.navigate('MedicalRecord', {});
         break;
       default:
         console.warn(`Unknown action: ${action}`);
