@@ -35,14 +35,36 @@ import TimeSlotManagementScreen from '../screens/admin/TimeSlotManagementScreen'
 // Staff Screens
 import DoctorHomeScreen from '../screens/staff/DoctorHomeScreen';
 import NurseHomeScreen from '../screens/staff/NurseHomeScreen';
+import FirstResponderHomeScreen from '../screens/emergency/FirstResponderHomeScreen';
 
 import { RootStackParamList } from './types';
-import { useAuth } from '../context/AuthContext';
+import { useAuth, AppRole } from '../context/AuthContext';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
+// Maps a resolved role to the screen that role should land on after login
+// or on reopening the app with a valid session. Falls back to 'Login' when
+// there's no resolved role yet (session exists but the patient/staff lookup
+// hasn't completed).
+function getHomeRouteForRole(role: AppRole): keyof RootStackParamList {
+  switch (role) {
+    case 'patient':
+      return 'PatientHome';
+    case 'Doctor':
+      return 'DoctorHome';
+    case 'Nurse':
+      return 'NurseHome';
+    case 'Admin':
+      return 'AdminDashboard';
+    case 'FirstResponder':
+      return 'FirstResponderHome';
+    default:
+      return 'PatientHome';
+  }
+}
+
 export default function AppNavigator() {
-  const { user, isLoading } = useAuth();
+  const { user, role, isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -53,12 +75,17 @@ export default function AppNavigator() {
     );
   }
 
+  const initialRouteName: keyof RootStackParamList = user
+    ? getHomeRouteForRole(role)
+    : 'Login';
+
   return (
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
         cardStyle: { backgroundColor: '#F5F5F5' },
       }}
+      initialRouteName={initialRouteName}
     >
       {user ? (
         <Stack.Group>
@@ -88,6 +115,7 @@ export default function AppNavigator() {
           {/* Staff Screens */}
           <Stack.Screen name="DoctorHome" component={DoctorHomeScreen} />
           <Stack.Screen name="NurseHome" component={NurseHomeScreen} />
+          <Stack.Screen name="FirstResponderHome" component={FirstResponderHomeScreen} />
         </Stack.Group>
       ) : (
         <Stack.Group>
