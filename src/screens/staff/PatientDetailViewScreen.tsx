@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   StatusBar,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,64 +16,6 @@ import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../services/supabase/client';
 
 const HEADER_BG = '#0F1B35';
-
-interface DummyPatientData {
-  id: string;
-  first_name: string;
-  last_name: string;
-  contact_number: string | null;
-  date_of_birth: string | null;
-  gender: string | null;
-  email: string | null;
-  address: string | null;
-  id_number: string | null;
-  next_of_kin_name: string | null;
-  next_of_kin_contact: string | null;
-}
-
-interface QueueEntry {
-  id: string;
-  patientId: string;
-  time: string;
-  reason: string;
-  status: string;
-}
-
-const DUMMY_PATIENTS: DummyPatientData[] = [
-  { id: '1', first_name: 'Yusrah', last_name: 'Adams', contact_number: '072 123 4567', date_of_birth: '1990-03-15', gender: 'Female', email: 'yusrah.adams@email.com', address: '14 Main Rd, Claremont', id_number: '9003150012345', next_of_kin_name: 'Fatima Adams', next_of_kin_contact: '082 345 6789' },
-  { id: '2', first_name: 'Lesego', last_name: 'Mokoena', contact_number: '073 234 5678', date_of_birth: '1985-07-22', gender: 'Female', email: 'lesego.m@email.com', address: '22 Lower Maynard Rd, Wynberg', id_number: '8507220023456', next_of_kin_name: 'Sino Mokoena', next_of_kin_contact: '071 456 7890' },
-  { id: '3', first_name: 'Dikeledi', last_name: 'Phiri', contact_number: '074 345 6789', date_of_birth: '1978-11-08', gender: 'Female', email: 'dikeledi.p@email.com', address: '5 Manenberg Ave, Manenberg', id_number: '7811080034567', next_of_kin_name: 'Sello Lawana', next_of_kin_contact: '083 567 8901' },
-  { id: '7', first_name: 'Thandiwe', last_name: 'Molefe', contact_number: '073 789 0123', date_of_birth: '1988-04-17', gender: 'Female', email: 'thandiwe.m@email.com', address: '10 Fundana Rd, Khayelitsha', id_number: '8804170078901', next_of_kin_name: 'Theo Majola', next_of_kin_contact: '071 901 2345' },
-  { id: '8', first_name: 'Sipho', last_name: 'Dlamini', contact_number: '084 890 1234', date_of_birth: '1976-12-03', gender: 'Male', email: 'sipho.d@email.com', address: '6 Hanover Park Ave, Hanover Park', id_number: '7612030089012', next_of_kin_name: 'Zanele Dlamini', next_of_kin_contact: '073 012 3456' },
-  { id: '9', first_name: 'Naledi', last_name: 'Khumalo', contact_number: '078 901 2345', date_of_birth: '1999-08-19', gender: 'Female', email: 'naledi.k@email.com', address: '1 Lansdowne Rd, Philippi', id_number: '9908190090123', next_of_kin_name: 'Thabiso Khumalo', next_of_kin_contact: '076 123 4567' },
-];
-
-const DUMMY_QUEUE: QueueEntry[] = [
-  { id: 'q1', patientId: '1', time: '08:30', reason: 'Routine blood pressure check', status: 'done' },
-  { id: 'q2', patientId: '2', time: '08:45', reason: 'Wound dressing follow-up', status: 'in-progress' },
-  { id: 'q3', patientId: '3', time: '09:00', reason: 'Diabetes management', status: 'vitals-done' },
-  { id: 'q7', patientId: '7', time: '11:00', reason: 'Eye infection treatment', status: 'done' },
-  { id: 'q8', patientId: '8', time: '11:30', reason: 'Chest X-ray results', status: 'in-progress' },
-  { id: 'q9', patientId: '9', time: '12:00', reason: 'Flu symptoms and fever', status: 'waiting' },
-];
-
-const now = new Date();
-const daysAgo = (d: number) => new Date(now.getTime() - d * 24 * 60 * 60 * 1000).toISOString();
-
-const DUMMY_APPOINTMENTS_HISTORY: (AppointmentRecord & { patientId: string })[] = [
-  // Patient 1 - Yusrah Adams (Claremont area)
-  { id: 'a1', patientId: '1', clinic_id: 'cClaremont', clinic_name: 'Claremont Clinic', reason_for_visit: 'Blood pressure check-up', status: 'completed', notes: null, created_at: daysAgo(60) },
-  // Patient 2 - Lesego Mokoena (Wynberg area)
-  { id: 'a2', patientId: '2', clinic_id: 'cWynberg', clinic_name: 'Wynberg Clinic', reason_for_visit: 'Wound dressing', status: 'completed', notes: null, created_at: daysAgo(90) },
-  // Patient 3 - Dikeledi Phiri (Manenberg area)
-  { id: 'a3', patientId: '3', clinic_id: 'cManenberg', clinic_name: 'Manenberg Clinic', reason_for_visit: 'Diabetes management review', status: 'completed', notes: null, created_at: daysAgo(60) },
-  // Patient 7 - Thandiwe Molefe (Khayelitsha area)
-  { id: 'a7', patientId: '7', clinic_id: 'cMayenzeke', clinic_name: 'Mayenzeke Clinic', reason_for_visit: 'Eye infection treatment', status: 'completed', notes: null, created_at: daysAgo(60) },
-  // Patient 8 - Sipho Dlamini (Hanover Park area)
-  { id: 'a8', patientId: '8', clinic_id: 'cHanoverPark', clinic_name: 'Hanover Park Clinic', reason_for_visit: 'Chest X-ray', status: 'completed', notes: null, created_at: daysAgo(120) },
-  // Patient 9 - Naledi Khumalo (Philippi area)
-  { id: 'a9', patientId: '9', clinic_id: 'cPhilippi', clinic_name: 'Philippi Clinic', reason_for_visit: 'Flu treatment', status: 'completed', notes: null, created_at: daysAgo(60) },
-];
 
 interface PatientProfile {
   id: string;
@@ -143,46 +84,6 @@ export default function PatientDetailViewScreen() {
       setIsLoading(true);
       setError(null);
 
-      // Try dummy data first
-      const dummyPatient = DUMMY_PATIENTS.find((p) => p.id === patientId);
-
-      if (dummyPatient) {
-        const mappedPatient: PatientProfile = {
-          id: dummyPatient.id,
-          first_name: dummyPatient.first_name,
-          last_name: dummyPatient.last_name,
-          email: dummyPatient.email,
-          contact_number: dummyPatient.contact_number,
-          id_number: dummyPatient.id_number,
-          gender: dummyPatient.gender,
-          date_of_birth: dummyPatient.date_of_birth,
-          address: dummyPatient.address ? { city: dummyPatient.address } : null,
-          next_of_kin_name: dummyPatient.next_of_kin_name,
-          next_of_kin_contact: dummyPatient.next_of_kin_contact,
-        };
-        setPatient(mappedPatient);
-
-        // Get past appointments for this patient from history
-        const pastAppts = DUMMY_APPOINTMENTS_HISTORY.filter((a) => a.patientId === patientId);
-
-        // Get today's queue entry for this patient
-        const patientQueue = DUMMY_QUEUE.filter((q) => q.patientId === patientId);
-        const todayAppts: AppointmentRecord[] = patientQueue.map((q) => ({
-          id: q.id,
-          clinic_id: 'cMasincedane',
-          clinic_name: 'Masincedane Clinic',
-          reason_for_visit: q.reason,
-          status: q.status === 'done' ? 'completed' : q.status === 'escalated' ? 'booked' : 'confirmed',
-          notes: null,
-          created_at: new Date().toISOString(),
-        }));
-
-        setAppointments([...pastAppts, ...todayAppts]);
-        setIsLoading(false);
-        return;
-      }
-
-      // Fallback to Supabase
       const { data: patientData, error: patientError } = await supabase
         .from('patients')
         .select('*')
@@ -280,7 +181,7 @@ export default function PatientDetailViewScreen() {
   const fullName = `${patient.first_name} ${patient.last_name}`.trim();
   const initials = `${patient.first_name[0]}${patient.last_name[0]}`.toUpperCase();
 
-  const queueEntry = DUMMY_QUEUE.find((q) => q.patientId === patientId);
+  const queueEntry = appointments.find((a) => a.patient_id === patientId && a.status !== 'completed' && a.status !== 'cancelled');
   const queueStatus = queueEntry?.status || null;
 
   const QUEUE_STATUS_CONFIG: Record<string, { label: string; bg: string; text: string }> = {
