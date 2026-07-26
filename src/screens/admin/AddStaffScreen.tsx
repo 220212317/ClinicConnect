@@ -19,6 +19,7 @@ import { Dropdown } from '../../components/Dropdown';
 import { Button } from '../../components/Button';
 import { useTheme } from '../../context/ThemeContext';
 import { supabase } from '../../services/supabase/client';
+import { adminActionsClient } from '../../services/supabase/adminActionsClient';
 
 type StaffRole = 'Doctor' | 'Nurse' | 'Admin' | 'FirstResponder';
 
@@ -73,10 +74,16 @@ export default function AddStaffScreen() {
         .select('id, clinic_name')
         .eq('status', 'active');
 
-      if (error) throw error;
-      setClinics(data?.map(c => ({ id: c.id, name: c.clinic_name })) || []);
+      if (error) {
+        console.error('Supabase error fetching clinics:', error);
+        throw error;
+      }
+
+      const fetchedClinics = data?.map(c => ({ id: c.id, name: c.clinic_name })) || [];
+      setClinics(fetchedClinics);
     } catch (error) {
       console.error('Failed to fetch clinics:', error);
+      Alert.alert('Error', 'Unable to load clinics list. Please check database permissions.');
     } finally {
       setLoadingClinics(false);
     }
@@ -84,6 +91,9 @@ export default function AddStaffScreen() {
 
   const clinicOptions = clinics.map(c => c.name);
   const clinicMap = clinics.reduce((acc, c) => ({ ...acc, [c.name]: c.id }), {} as Record<string, string>);
+  
+  // Find current clinic name corresponding to form.clinicId
+  const selectedClinicName = clinics.find(c => c.id === form.clinicId)?.name || '';
 
   const updateField = (field: keyof StaffFormData, value: any) => {
     setForm(prev => ({ ...prev, [field]: value }));
@@ -124,28 +134,28 @@ export default function AddStaffScreen() {
 
     setIsLoading(true);
     try {
-      // Generate a temporary password
       const tempPassword = `Temp${Math.random().toString(36).slice(-8)}!`;
 
-      // Create user in auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      const { data: authData, error: authError } = await adminActionsClient.auth.signUp({
         email: form.email,
         password: tempPassword,
       });
 
+      await adminActionsClient.auth.signOut().catch(() => {});
+
       if (authError) throw authError;
       if (!authData.user) throw new Error('Failed to create user');
 
-      // Create staff record
+      const staffRegNumber = `STF-${Date.now().toString().slice(-6)}`;
       const staffData: any = {
         user_id: authData.user.id,
-        staff_reg_number: `STF-${Date.now().toString().slice(-6)}`,
+        staff_reg_number: staffRegNumber,
         first_name: form.firstName,
         last_name: form.lastName,
         email: form.email,
         contact_number: form.contactNumber,
         role: form.role,
-        clinic_id: clinicMap[form.clinicId] || form.clinicId,
+        clinic_id: form.clinicId,
         status: 'active',
       };
 
@@ -169,7 +179,7 @@ export default function AddStaffScreen() {
 
       Alert.alert(
         'Success',
-        `Staff member added successfully!\n\nTemporary Password: ${tempPassword}\nPlease share this with the staff member.`,
+        `Staff member added successfully!\n\nStaff ID: ${staffRegNumber}\nTemporary Password: ${tempPassword}\n\nShare both with the staff member — they'll sign in from the Staff Login screen and land on their ${form.role} dashboard automatically.`,
         [{ text: 'OK', onPress: () => navigation.goBack() }]
       );
     } catch (error: any) {
@@ -303,12 +313,13 @@ export default function AddStaffScreen() {
 
               <Dropdown
                 label="Clinic"
-                value={form.clinicId}
+                value={selectedClinicName}
                 options={loadingClinics ? [] : clinicOptions}
-                onSelect={(v) => updateField('clinicId', v)}
+                onSelect={(selectedName) => {
+                  const id = clinicMap[selectedName] || '';
+                  updateField('clinicId', id);
+                }}
                 error={errors.clinicId}
-                // 'Dropdown' component does not accept a 'disabled' prop;
-                // hide options while clinics are loading by clearing options instead.
               />
 
               {renderRoleSpecificFields()}
