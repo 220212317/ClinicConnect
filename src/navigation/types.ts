@@ -8,7 +8,7 @@ export type RootStackParamList = {
   RegisterStep2: { [key: string]: any };
   
   // Patient Screens
-  PatientHome: undefined;
+  PatientHome: { [key: string]: any };
   PatientProfile: { patientId?: string };
   MedicalRecord: { patientId?: string };
   NearbyClinics: undefined;
