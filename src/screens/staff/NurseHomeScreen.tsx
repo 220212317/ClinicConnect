@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,39 +7,23 @@ import {
   StyleSheet,
   SafeAreaView,
   StatusBar,
-  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
+import { supabase } from '../../services/supabase/client';
 
 type PatientStatus = 'waiting' | 'in-progress' | 'vitals-done' | 'escalated' | 'done';
 
 interface QueueItem {
   id: string;
+  patientId: string;
   name: string;
   time: string;
   reason: string;
   status: PatientStatus;
 }
-
-const DUMMY_QUEUE: QueueItem[] = [
-  { id: 'q1', name: 'Yusrah Adams', time: '08:30', reason: 'Routine blood pressure check', status: 'done' },
-  { id: 'q2', name: 'Lesego Mokoena', time: '08:45', reason: 'Wound dressing follow-up', status: 'in-progress' },
-  { id: 'q3', name: 'Dikeledi Phiri', time: '09:00', reason: 'Diabetes management', status: 'vitals-done' },
-  { id: 'q7', name: 'Thandiwe Molefe', time: '11:00', reason: 'Eye infection treatment', status: 'done' },
-  { id: 'q8', name: 'Sipho Dlamini', time: '11:30', reason: 'Chest X-ray results', status: 'in-progress' },
-  { id: 'q9', name: 'Naledi Khumalo', time: '12:00', reason: 'Flu symptoms and fever', status: 'waiting' },
-];
-
-const DUMMY_PATIENTS = [
-  { id: '1', first_name: 'Yusrah', last_name: 'Adams', contact_number: '072 123 4567', date_of_birth: '1990-03-15', gender: 'Female', email: 'yusrah.adams@email.com', address: '14 Main Rd, Claremont', next_of_kin_name: 'Fatima Adams', next_of_kin_contact: '082 345 6789' },
-  { id: '2', first_name: 'Lesego', last_name: 'Mokoena', contact_number: '073 234 5678', date_of_birth: '1985-07-22', gender: 'Female', email: 'lesego.m@email.com', address: '22 Lower Maynard Rd, Wynberg', next_of_kin_name: 'Thabo Mokoena', next_of_kin_contact: '071 456 7890' },
-  { id: '3', first_name: 'Dikeledi', last_name: 'Phiri', contact_number: '074 345 6789', date_of_birth: '1978-11-08', gender: 'Female', email: 'dikeledi.p@email.com', address: '5 Manenberg Ave, Manenberg', next_of_kin_name: 'Sello Phiri', next_of_kin_contact: '083 567 8901' },
-  { id: '7', first_name: 'Thandiwe', last_name: 'Molefe', contact_number: '073 789 0123', date_of_birth: '1988-04-17', gender: 'Female', email: 'thandiwe.m@email.com', address: '10 Fundana Rd, Khayelitsha', next_of_kin_name: 'Bongani Molefe', next_of_kin_contact: '071 901 2345' },
-  { id: '8', first_name: 'Sipho', last_name: 'Dlamini', contact_number: '084 890 1234', date_of_birth: '1976-12-03', gender: 'Male', email: 'sipho.d@email.com', address: '6 Hanover Park Ave, Hanover Park', next_of_kin_name: 'Zanele Dlamini', next_of_kin_contact: '073 012 3456' },
-  { id: '9', first_name: 'Naledi', last_name: 'Khumalo', contact_number: '078 901 2345', date_of_birth: '1999-08-19', gender: 'Female', email: 'naledi.k@email.com', address: '1 Lansdowne Rd, Philippi', next_of_kin_name: 'Thabiso Khumalo', next_of_kin_contact: '076 123 4567' },
-];
 
 const STATS_CONFIG = [
   { label: 'In Queue', icon: 'people' as const, filter: 'in-queue' as const },
@@ -63,11 +47,81 @@ const MAIN_BG = '#F0EDE8';
 const CARD_BG = '#1E2D4E';
 const QUEUE_BG = '#D9D6D0';
 
+const mapAppointmentStatus = (status: string): PatientStatus => {
+  switch (status) {
+    case 'booked': return 'waiting';
+    case 'confirmed': return 'in-progress';
+    case 'completed': return 'done';
+    case 'cancelled': return 'done';
+    case 'no_show': return 'done';
+    default: return 'waiting';
+  }
+};
+
 const NurseHomeScreen: React.FC = () => {
-  const [queueItems, setQueueItems] = useState<QueueItem[]>(DUMMY_QUEUE);
+  const [queueItems, setQueueItems] = useState<QueueItem[]>([]);
   const [selectedFilter, setSelectedFilter] = useState<FilterType>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const navigation = useNavigation();
   const { logout, staffProfile } = useAuth();
+
+  const fetchQueue = useCallback(async () => {
+    if (!staffProfile?.clinic_id) {
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const today = new Date().toISOString().split('T')[0];
+
+      const { data: appointmentsData, error } = await supabase
+        .from('appointments')
+        .select(`
+          id,
+          patient_id,
+          reason_for_visit,
+          status,
+          created_at,
+          patient:patients!appointments_patient_id_fkey (
+            first_name,
+            last_name
+          ),
+          time_slot:time_slots!appointments_time_slot_id_fkey (
+            start_time,
+            date
+          )
+        `)
+        .eq('clinic_id', staffProfile.clinic_id)
+        .eq('time_slot.date', today)
+        .not('status', 'eq', 'cancelled')
+        .not('status', 'eq', 'no_show')
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+
+      const queue: QueueItem[] = (appointmentsData || []).map((appt: any) => ({
+        id: appt.id,
+        patientId: appt.patient_id,
+        name: `${appt.patient?.first_name || ''} ${appt.patient?.last_name || ''}`.trim(),
+        time: appt.time_slot?.start_time || new Date(appt.created_at).toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit', hour12: false }),
+        reason: appt.reason_for_visit || 'General consultation',
+        status: mapAppointmentStatus(appt.status),
+      }));
+
+      setQueueItems(queue);
+    } catch (err) {
+      console.error('Error fetching queue:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [staffProfile?.clinic_id]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchQueue();
+    }, [fetchQueue])
+  );
 
   const counts = {
     'in-queue': queueItems.filter((p) => p.status === 'waiting' || p.status === 'in-progress').length,
@@ -144,14 +198,16 @@ const NurseHomeScreen: React.FC = () => {
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false}>
-            {filteredPatients.length === 0 ? (
+            {isLoading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#5B7FC4" />
+                <Text style={styles.loadingText}>Loading queue...</Text>
+              </View>
+            ) : filteredPatients.length === 0 ? (
               <Text style={styles.noResults}>No patients found</Text>
             ) : (
-              filteredPatients.map((patient, index) => {
-                const dummyPatient = DUMMY_PATIENTS.find((p) => `${p.first_name} ${p.last_name}` === patient.name);
-                const patientId = dummyPatient?.id || patient.id;
-                return (
-                <TouchableOpacity key={patient.id} onPress={() => navigation.navigate('PatientDetailView', { patientId } as never)} activeOpacity={0.7}>
+              filteredPatients.map((patient, index) => (
+                <TouchableOpacity key={patient.id} onPress={() => navigation.navigate('PatientDetailView', { patientId: patient.patientId } as never)} activeOpacity={0.7}>
                   <View style={styles.queueRow}>
                     <View style={styles.queueInfo}>
                       <Text style={styles.patientName}>{patient.name}</Text>
@@ -167,8 +223,7 @@ const NurseHomeScreen: React.FC = () => {
                   </View>
                   {index < filteredPatients.length - 1 && <View style={styles.rowDivider} />}
                 </TouchableOpacity>
-                );
-              })
+              ))
             )}
           </ScrollView>
         </View>
@@ -327,6 +382,15 @@ const styles = StyleSheet.create({
     color: '#888',
     fontSize: 14,
     paddingVertical: 20,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    paddingVertical: 30,
+    gap: 8,
+  },
+  loadingText: {
+    fontSize: 14,
+    color: '#888',
   },
 
   queueRow: {
