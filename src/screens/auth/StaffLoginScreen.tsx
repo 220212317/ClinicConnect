@@ -102,12 +102,22 @@ const StaffLoginScreen: React.FC = () => {
           {
             text: "Continue",
             onPress: () => {
-              // Navigate to AdminDashboard based on role
-              const role = staffData.role?.toLowerCase() || 'staff';
-              if (role === 'admin') {
-                navigation.replace('AdminDashboard');
-              } else {
-                navigation.replace('AdminDashboard');
+              // Route each role to its own home screen.
+              switch (staffData.role) {
+                case 'Doctor':
+                  navigation.replace('DoctorHome');
+                  break;
+                case 'Nurse':
+                  navigation.replace('NurseHome');
+                  break;
+                case 'Admin':
+                  navigation.replace('AdminDashboard');
+                  break;
+                case 'FirstResponder':
+                  navigation.replace('FirstResponderHome');
+                  break;
+                default:
+                  navigation.replace('AdminDashboard');
               }
             }
           }
@@ -168,7 +178,7 @@ const StaffLoginScreen: React.FC = () => {
                   autoCapitalize="characters"
                   autoCorrect={false}
                   editable={!isLoading}
-                  placeholder="e.g., ADMIN-001"
+                  placeholder="Enter your Staff ID"
                   placeholderTextColor="#999"
                 />
               </View>
