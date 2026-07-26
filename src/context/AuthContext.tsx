@@ -3,14 +3,20 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { supabase } from '../services/supabase/client';
 import { PatientProfile } from '../services/api/profile';
 import { Session, User } from '@supabase/supabase-js';
-import { UserRole } from '../types';
+import { UserRole, Staff, StaffRole } from '../types';
 
 const ROLE_STORAGE_KEY = '@clinicconnect_user_role';
+
+// The role of whoever is currently logged in. 'patient' comes from a row in
+// `patients`; the StaffRole values come from `staff.role` for anyone else.
+export type AppRole = 'patient' | StaffRole | null;
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   profile: PatientProfile | null;
+  staffProfile: Staff | null;
+  role: AppRole;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, patientData: any) => Promise<PatientProfile>;
@@ -25,44 +31,70 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<PatientProfile | null>(null);
+  const [staffProfile, setStaffProfile] = useState<Staff | null>(null);
+  const [role, setRole] = useState<AppRole>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isFetching, setIsFetching] = useState(false);
 
-  // Fetch profile using the profile API
+  // Resolve who this user is: check `patients` first, then `staff`.
+  // A user only ever has a row in one of the two tables.
   const fetchProfile = async (userId: string) => {
     if (isFetching) {
       console.log('⏳ Already fetching profile, skipping...');
       return profile;
     }
-    
+
     try {
       setIsFetching(true);
-      console.log('🔍 Fetching profile for user:', userId);
-      
-      const { data, error } = await supabase
+      console.log('🔍 Resolving account for user:', userId);
+
+      const { data: patientData, error: patientError } = await supabase
         .from('patients')
         .select('*')
         .eq('user_id', userId)
         .maybeSingle();
 
-      if (error) {
-        console.error('❌ Error fetching profile:', error);
+      if (patientError) {
+        console.error('❌ Error fetching patient profile:', patientError);
+      }
+
+      if (patientData) {
+        console.log('✅ Patient profile found:', patientData);
+        setProfile(patientData as PatientProfile);
+        setStaffProfile(null);
+        setRole('patient');
+        return patientData as PatientProfile;
+      }
+
+      // Not a patient — check whether this is a staff account instead.
+      const { data: staffData, error: staffError } = await supabase
+        .from('staff')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (staffError) {
+        console.error('❌ Error fetching staff profile:', staffError);
+      }
+
+      if (staffData) {
+        console.log('✅ Staff profile found:', staffData);
         setProfile(null);
+        setStaffProfile(staffData as Staff);
+        setRole(staffData.role as StaffRole);
         return null;
       }
-      
-      if (data) {
-        console.log('✅ Profile found:', data);
-        setProfile(data as PatientProfile);
-        return data as PatientProfile;
-      } else {
-        console.log('⚠️ No patient profile found for user:', userId);
-        setProfile(null);
-        return null;
-      }
+
+      console.log('⚠️ No patient or staff record found for user:', userId);
+      setProfile(null);
+      setStaffProfile(null);
+      setRole(null);
+      return null;
     } catch (error) {
       console.error('❌ Error in fetchProfile:', error);
       setProfile(null);
+      setStaffProfile(null);
+      setRole(null);
       return null;
     } finally {
       setIsFetching(false);
@@ -145,6 +177,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else if (event === 'SIGNED_OUT') {
           console.log('👤 User logged out');
           setProfile(null);
+          setStaffProfile(null);
+          setRole(null);
         }
         setIsLoading(false);
       }
@@ -239,7 +273,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       // 4. Set the profile in state
       setProfile(newProfile as PatientProfile);
-      
+      setStaffProfile(null);
+      setRole('patient');
+
       return newProfile as PatientProfile;
       
     } catch (error) {
@@ -253,6 +289,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
     setProfile(null);
+    setStaffProfile(null);
+    setRole(null);
     setUser(null);
     setSession(null);
   };
@@ -261,6 +299,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user,
     session,
     profile,
+    staffProfile,
+    role,
     isLoading,
     login,
     register,
