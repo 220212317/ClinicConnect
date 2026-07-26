@@ -181,7 +181,8 @@ export default function PatientDetailViewScreen() {
   const fullName = `${patient.first_name} ${patient.last_name}`.trim();
   const initials = `${patient.first_name[0]}${patient.last_name[0]}`.toUpperCase();
 
-  const queueEntry = appointments.find((a) => a.patient_id === patientId && a.status !== 'completed' && a.status !== 'cancelled');
+  // appointments are already scoped to this patient (fetched with .eq('patient_id', patientId))
+  const queueEntry = appointments.find((a) => a.status !== 'completed' && a.status !== 'cancelled');
   const queueStatus = queueEntry?.status || null;
 
   const QUEUE_STATUS_CONFIG: Record<string, { label: string; bg: string; text: string }> = {
