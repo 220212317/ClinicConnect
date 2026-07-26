@@ -1,12 +1,3 @@
-// src/utils/clinicHours.ts
-//
-// Clinics store `operating_hours` as a free-text field an admin types in
-// (e.g. "Mon-Fri 07:30-16:30"), not structured data. This parses the common
-// formats admins actually use and computes a real open/closed/closing-soon
-// status from the current time in South Africa — instead of trusting a
-// hardcoded default or the clinic's `status` column (which just means
-// "active in the system", not "open right now").
-
 export type ClinicOpenStatus = 'open' | 'closed' | 'closing_soon' | 'unknown';
 
 export interface ClinicStatusResult {
@@ -15,7 +6,7 @@ export interface ClinicStatusResult {
 }
 
 interface DaySegment {
-  days: number[]; // 0 = Monday ... 6 = Sunday
+  days: number[]; 
   openMinutes: number;
   closeMinutes: number;
 }
@@ -36,7 +27,7 @@ function parseDayList(segment: string): number[] | null {
   const tokens = [...segment.matchAll(DAY_TOKEN_RE)].map((m) => DAY_NAMES[m[1].toLowerCase()]);
   if (tokens.length === 0) return null;
 
-  // "Mon-Fri" / "Mon to Fri" style range vs "Mon, Wed, Fri" style list.
+  
   const isRange = /-|–|to/i.test(segment) && tokens.length >= 2 && !segment.includes(',');
 
   if (isRange) {
@@ -44,8 +35,7 @@ function parseDayList(segment: string): number[] | null {
     const end = tokens[tokens.length - 1];
     const days: number[] = [];
     let d = start;
-    // Walk forward through the week, wrapping past Sunday if needed
-    // (e.g. "Fri-Mon").
+    
     for (let i = 0; i < 7; i++) {
       days.push(d);
       if (d === end) break;
@@ -85,13 +75,7 @@ function parseTimeRange(segment: string): { open: number; close: number } | null
   return { open, close };
 }
 
-/**
- * Parses a free-text operating_hours string into structured day/time
- * segments. Supports comma-separated groups so admins can write things like
- * "Mon-Fri 08:00-16:00, Sat 08:00-12:00". Returns null if nothing usable
- * could be extracted (caller should treat the clinic's hours as unknown
- * rather than guessing).
- */
+
 export function parseOperatingHours(hoursText: string | null | undefined): DaySegment[] | 'always_open' | null {
   if (!hoursText || !hoursText.trim()) return null;
 
@@ -102,11 +86,7 @@ export function parseOperatingHours(hoursText: string | null | undefined): DaySe
   const timeRangeGlobalRe = /\d{1,2}(?::\d{2})?\s*(?:am|pm)?\s*(?:-|–|to)\s*\d{1,2}(?::\d{2})?\s*(?:am|pm)?/gi;
   const timeRangeCount = (hoursText.match(timeRangeGlobalRe) || []).length;
 
-  // Most admin-entered hours are a single day-range + time-range, often
-  // written with a comma in the middle ("Monday to Friday, 8am - 5pm").
-  // Only treat commas as separating distinct day/time GROUPS when there's
-  // more than one time range in the string — otherwise a single comma used
-  // for readability would incorrectly split a valid single-group string.
+  
   if (timeRangeCount <= 1) {
     const days = parseDayList(hoursText);
     const times = parseTimeRange(hoursText);
@@ -130,11 +110,7 @@ export function parseOperatingHours(hoursText: string | null | undefined): DaySe
 
 const CLOSING_SOON_WINDOW_MINUTES = 30;
 
-/**
- * Computes live open/closed status for a clinic in South African local time
- * (Africa/Johannesburg), regardless of what timezone the device itself is
- * set to.
- */
+
 export function getClinicStatus(hoursText: string | null | undefined, now: Date = new Date()): ClinicStatusResult {
   const parsed = parseOperatingHours(hoursText);
 
@@ -167,8 +143,7 @@ export function getClinicStatus(hoursText: string | null | undefined, now: Date 
   }
 
   const { openMinutes, closeMinutes } = todaySegment;
-  // Handle overnight ranges (e.g. 20:00-02:00) by treating "closed" as
-  // spanning past midnight.
+  
   const spansMidnight = closeMinutes <= openMinutes;
   const isOpen = spansMidnight
     ? nowMinutes >= openMinutes || nowMinutes < closeMinutes
