@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
+import { supabase } from '../../services/supabase/client';
 
 interface PatientResult {
   id: string;
@@ -23,15 +24,6 @@ interface PatientResult {
   gender: string | null;
   id_number: string | null;
 }
-
-const DUMMY_PATIENTS: PatientResult[] = [
-  { id: '1', first_name: 'Yusrah', last_name: 'Adams', contact_number: '072 123 4567', date_of_birth: '1990-03-15', gender: 'Female', id_number: '9003150012345' },
-  { id: '2', first_name: 'Lesego', last_name: 'Mokoena', contact_number: '073 234 5678', date_of_birth: '1985-07-22', gender: 'Female', id_number: '8507220023456' },
-  { id: '3', first_name: 'Dikeledi', last_name: 'Phiri', contact_number: '074 345 6789', date_of_birth: '1978-11-08', gender: 'Female', id_number: '7811080034567' },
-  { id: '7', first_name: 'Thandiwe', last_name: 'Molefe', contact_number: '073 789 0123', date_of_birth: '1988-04-17', gender: 'Female', id_number: '8804170078901' },
-  { id: '8', first_name: 'Sipho', last_name: 'Dlamini', contact_number: '084 890 1234', date_of_birth: '1976-12-03', gender: 'Male', id_number: '7612030089012' },
-  { id: '9', first_name: 'Naledi', last_name: 'Khumalo', contact_number: '078 901 2345', date_of_birth: '1999-08-19', gender: 'Female', id_number: '9908190090123' },
-];
 
 const DEBOUNCE_MS = 400;
 
@@ -45,7 +37,7 @@ export default function PatientSearchScreen() {
   const [hasSearched, setHasSearched] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const searchPatients = useCallback((searchTerm: string) => {
+  const searchPatients = useCallback(async (searchTerm: string) => {
     if (!searchTerm.trim()) {
       setResults([]);
       setHasSearched(false);
@@ -56,19 +48,25 @@ export default function PatientSearchScreen() {
     setIsLoading(true);
     setHasSearched(true);
 
-    const lower = searchTerm.toLowerCase().trim();
-    const stripped = lower.replace(/\s/g, '');
+    try {
+      const lower = searchTerm.toLowerCase().trim();
+      const stripped = lower.replace(/\s/g, '');
 
-    const matched = DUMMY_PATIENTS.filter((p) => {
-      if (p.first_name.toLowerCase().startsWith(lower)) return true;
-      if (p.last_name.toLowerCase().startsWith(lower)) return true;
-      if (p.id.startsWith(lower)) return true;
-      if (p.contact_number?.toLowerCase().replace(/\s/g, '').startsWith(stripped)) return true;
-      return false;
-    });
+      const { data, error } = await supabase
+        .from('patients')
+        .select('id, first_name, last_name, contact_number, date_of_birth, gender, id_number')
+        .or(`first_name.ilike.${lower}%,last_name.ilike.${lower}%,contact_number.ilike.${stripped}%,id_number.ilike.${lower}%`)
+        .limit(20);
 
-    setResults(matched);
-    setIsLoading(false);
+      if (error) throw error;
+
+      setResults(data || []);
+    } catch (err) {
+      console.error('Error searching patients:', err);
+      setResults([]);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   const handleTextChange = useCallback((text: string) => {
