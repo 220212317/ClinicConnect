@@ -35,6 +35,9 @@ import TimeSlotManagementScreen from '../screens/admin/TimeSlotManagementScreen'
 // Staff Screens
 import DoctorHomeScreen from '../screens/staff/DoctorHomeScreen';
 import NurseHomeScreen from '../screens/staff/NurseHomeScreen';
+import NurseProfileScreen from '../screens/staff/NurseProfileScreen';
+import PatientDetailViewScreen from '../screens/staff/PatientDetailViewScreen';
+import PatientSearchScreen from '../screens/staff/PatientSearchScreen';
 import FirstResponderHomeScreen from '../screens/emergency/FirstResponderHomeScreen';
 
 import { RootStackParamList } from './types';
@@ -115,6 +118,9 @@ export default function AppNavigator() {
           {/* Staff Screens */}
           <Stack.Screen name="DoctorHome" component={DoctorHomeScreen} />
           <Stack.Screen name="NurseHome" component={NurseHomeScreen} />
+          <Stack.Screen name="NurseProfile" component={NurseProfileScreen} />
+          <Stack.Screen name="PatientDetailView" component={PatientDetailViewScreen} initialParams={{ patientId: '' }} />
+          <Stack.Screen name="PatientSearch" component={PatientSearchScreen} />
           <Stack.Screen name="FirstResponderHome" component={FirstResponderHomeScreen} />
         </Stack.Group>
       ) : (

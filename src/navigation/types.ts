@@ -10,7 +10,7 @@ export type RootStackParamList = {
   // Patient Screens
   PatientHome: undefined;
   PatientProfile: undefined;
-  MedicalRecord: undefined;
+  MedicalRecord: { patientId?: string };
   NearbyClinics: undefined;
   BookAppointment: { clinicId: string };
   AppointmentDetail: { appointmentId: string };
@@ -33,6 +33,9 @@ export type RootStackParamList = {
 
   DoctorHome: undefined;
   NurseHome: undefined;
+  NurseProfile: undefined;
+  PatientDetailView: { patientId: string };
+  PatientSearch: undefined;
   FirstResponderHome: undefined;
 };
 
