@@ -33,6 +33,7 @@ export type RootStackParamList = {
 
   DoctorHome: undefined;
   NurseHome: undefined;
+  FirstResponderHome: undefined;
 };
 
 declare global {
