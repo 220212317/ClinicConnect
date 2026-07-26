@@ -9,7 +9,7 @@ export type RootStackParamList = {
   
   // Patient Screens
   PatientHome: undefined;
-  PatientProfile: undefined;
+  PatientProfile: { patientId?: string };
   MedicalRecord: { patientId?: string };
   NearbyClinics: undefined;
   BookAppointment: { clinicId: string };
