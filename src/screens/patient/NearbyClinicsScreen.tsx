@@ -27,6 +27,7 @@ import {
   calculateDistance,
   formatDistance,
 } from '../../utils/location';
+import { getClinicStatus, ClinicOpenStatus } from '../../utils/clinicHours';
 
 export interface Clinic {
   id: string;
@@ -34,21 +35,21 @@ export interface Clinic {
   distance: string;
   distanceKm: number;
   hours: string;
-  openTime: string;
-  closeTime: string;
-  status: 'open' | 'closed' | 'closing_soon';
+  operatingHours: string | null;
   services: string[];
   address: string;
   phone: string;
-  rating: number;
-  waitTime?: string;
-  acceptingWalkins?: boolean;
   latitude?: number;
   longitude?: number;
 }
 
+export interface ClinicWithStatus extends Clinic {
+  status: ClinicOpenStatus;
+  statusLabel: string;
+}
+
 type FilterOption = 'all' | 'open' | 'nearby' | 'antenatal';
-type SortOption = 'distance' | 'rating' | 'name';
+type SortOption = 'distance' | 'name';
 
 export default function NearbyClinicsScreen() {
   const navigation = useNavigation();
@@ -68,6 +69,14 @@ export default function NearbyClinicsScreen() {
   const [isLocating, setIsLocating] = useState(true);
   const [searchArea, setSearchArea] = useState('Cape Town, Western Cape');
 
+  // Ticks every minute so clinic open/closed status updates live while the
+  // screen is open, without needing to re-fetch from Supabase.
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   const isWeb = Platform.OS === 'web';
   const isDesktop = isWeb && width >= 1024;
   const isTablet = isWeb && width >= 768 && width < 1024;
@@ -82,7 +91,6 @@ export default function NearbyClinicsScreen() {
 
   const sortOptions: { id: SortOption; label: string }[] = [
     { id: 'distance', label: 'Distance' },
-    { id: 'rating', label: 'Rating' },
     { id: 'name', label: 'Name' },
   ];
 
@@ -168,23 +176,17 @@ export default function NearbyClinicsScreen() {
         }
 
         const serviceNames = clinic.services?.map((s: any) => s.service_name) || [];
-        const status: 'open' | 'closed' | 'closing_soon' = clinic.status === 'active' ? 'open' : 'closed';
 
         return {
           id: clinic.id,
           name: clinic.clinic_name,
           distance: distance,
           distanceKm: distanceKm,
-          hours: clinic.operating_hours || 'Mon - Fri: 07:30 - 16:30',
-          openTime: '07:30',
-          closeTime: '16:30',
-          status: status,
+          hours: clinic.operating_hours || 'Hours not set',
+          operatingHours: clinic.operating_hours,
           services: serviceNames,
           address: clinic.address || clinic.location || '',
           phone: clinic.phone || clinic.contact_details || '',
-          rating: 4.0 + Math.random() * 0.8,
-          waitTime: distanceKm < 3 ? '10-20 min' : distanceKm < 5 ? '20-35 min' : '30-45 min',
-          acceptingWalkins: Math.random() > 0.3,
           latitude: clinic.latitude,
           longitude: clinic.longitude,
         };
@@ -216,8 +218,15 @@ export default function NearbyClinicsScreen() {
     }
   }, [userLocation]);
 
+  const clinicsWithStatus: ClinicWithStatus[] = useMemo(() => {
+    return clinics.map((clinic) => {
+      const { status, label } = getClinicStatus(clinic.operatingHours, now);
+      return { ...clinic, status, statusLabel: label };
+    });
+  }, [clinics, now]);
+
   const filteredAndSortedClinics = useMemo(() => {
-    let filtered = [...clinics];
+    let filtered = [...clinicsWithStatus];
 
     if (searchQuery) {
       filtered = filtered.filter(clinic =>
@@ -228,7 +237,7 @@ export default function NearbyClinicsScreen() {
 
     switch (selectedFilter) {
       case 'open':
-        filtered = filtered.filter(clinic => clinic.status === 'open');
+        filtered = filtered.filter(clinic => clinic.status === 'open' || clinic.status === 'closing_soon');
         break;
       case 'nearby':
         filtered = filtered.filter(clinic => clinic.distanceKm <= 5);
@@ -250,8 +259,6 @@ export default function NearbyClinicsScreen() {
       switch (selectedSort) {
         case 'distance':
           return a.distanceKm - b.distanceKm;
-        case 'rating':
-          return b.rating - a.rating;
         case 'name':
           return a.name.localeCompare(b.name);
         default:
@@ -260,7 +267,7 @@ export default function NearbyClinicsScreen() {
     });
 
     return filtered;
-  }, [clinics, searchQuery, selectedFilter, selectedSort]);
+  }, [clinicsWithStatus, searchQuery, selectedFilter, selectedSort]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -293,24 +300,17 @@ export default function NearbyClinicsScreen() {
     Linking.openURL(`tel:${phone}`);
   }, []);
 
-  const getStatusInfo = (status: Clinic['status']) => {
+  const getStatusInfo = (status: ClinicOpenStatus) => {
     switch (status) {
       case 'open':
-        return { color: '#4CAF50', text: 'Open', icon: 'checkmark-circle' };
+        return { color: '#4CAF50', icon: 'checkmark-circle' };
       case 'closing_soon':
-        return { color: '#FF9800', text: 'Closing Soon', icon: 'time' };
+        return { color: '#FF9800', icon: 'time' };
+      case 'unknown':
+        return { color: '#9E9E9E', icon: 'help-circle' };
       default:
-        return { color: '#9E9E9E', text: 'Closed', icon: 'close-circle' };
+        return { color: '#9E9E9E', icon: 'close-circle' };
     }
-  };
-
-  const renderRating = (rating: number) => {
-    return (
-      <View style={styles.ratingContainer}>
-        <Ionicons name="star" size={14} color="#FFB800" />
-        <Text style={styles.ratingText}>{rating.toFixed(1)}</Text>
-      </View>
-    );
   };
 
   const renderServiceTags = (services: string[]) => {
@@ -331,7 +331,7 @@ export default function NearbyClinicsScreen() {
     );
   };
 
-  const ClinicCard = ({ item }: { item: Clinic }) => {
+  const ClinicCard = ({ item }: { item: ClinicWithStatus }) => {
     const statusInfo = getStatusInfo(item.status);
     const isExpanded = expandedClinic === item.id;
 
@@ -347,7 +347,6 @@ export default function NearbyClinicsScreen() {
               <Text style={[styles.clinicName, isDesktop && styles.clinicNameDesktop]}>
                 {item.name}
               </Text>
-              {renderRating(item.rating)}
             </View>
             <View style={styles.clinicMeta}>
               <View style={styles.metaItem}>
@@ -361,7 +360,7 @@ export default function NearbyClinicsScreen() {
               <View style={[styles.statusBadge, { backgroundColor: `${statusInfo.color}15` }]}>
                 <Ionicons name={statusInfo.icon as any} size={12} color={statusInfo.color} />
                 <Text style={[styles.statusText, { color: statusInfo.color }]}>
-                  {statusInfo.text}
+                  {item.statusLabel}
                 </Text>
               </View>
             </View>
@@ -383,18 +382,6 @@ export default function NearbyClinicsScreen() {
               <Ionicons name="location-outline" size={18} color="#666" />
               <Text style={[styles.infoText, styles.linkText]}>{item.address}</Text>
             </TouchableOpacity>
-            {item.waitTime && (
-              <View style={styles.infoRow}>
-                <Ionicons name="hourglass-outline" size={18} color="#666" />
-                <Text style={styles.infoText}>Est. wait time: {item.waitTime}</Text>
-              </View>
-            )}
-            {item.acceptingWalkins && (
-              <View style={[styles.infoRow, styles.walkinBadge]}>
-                <Ionicons name="walk-outline" size={16} color="#4CAF50" />
-                <Text style={styles.walkinText}>Accepting Walk-ins</Text>
-              </View>
-            )}
 
             <Text style={styles.servicesLabel}>Services offered:</Text>
             {renderServiceTags(item.services)}
