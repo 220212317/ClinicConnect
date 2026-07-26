@@ -3,7 +3,7 @@ const { createClient } = require('@supabase/supabase-js');
 const ws = require('ws');
 require('dotenv').config();
 
-// Support standard Supabase env names as well as Expo/React Native naming conventions
+
 const supabaseUrl = 
   process.env.SUPABASE_URL || 
   process.env.EXPO_PUBLIC_SUPABASE_URL || 
@@ -20,7 +20,7 @@ if (!supabaseUrl || !supabaseKey) {
   process.exit(1);
 }
 
-// Initialize Supabase client with ws transport for compatibility
+
 const supabase = createClient(supabaseUrl, supabaseKey, {
   realtime: {
     transport: ws,
@@ -116,7 +116,7 @@ async function seedClinics() {
 
   for (const clinic of clinics) {
     try {
-      // Changed to .insert() to bypass unique constraint checks
+     
       const { error } = await supabase
         .from('clinics')
         .insert({
