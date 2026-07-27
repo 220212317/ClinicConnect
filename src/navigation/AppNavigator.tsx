@@ -39,6 +39,7 @@ import NurseProfileScreen from '../screens/staff/NurseProfileScreen';
 import PatientDetailViewScreen from '../screens/staff/PatientDetailViewScreen';
 import PatientSearchScreen from '../screens/staff/PatientSearchScreen';
 import FirstResponderHomeScreen from '../screens/emergency/FirstResponderHomeScreen';
+import FirstResponderProfileScreen from '../screens/emergency/FirstResponderProfileScreen';
 
 import { RootStackParamList } from './types';
 import { useAuth, AppRole } from '../context/AuthContext';
@@ -122,6 +123,7 @@ export default function AppNavigator() {
           <Stack.Screen name="PatientDetailView" component={PatientDetailViewScreen} initialParams={{ patientId: '' }} />
           <Stack.Screen name="PatientSearch" component={PatientSearchScreen} />
           <Stack.Screen name="FirstResponderHome" component={FirstResponderHomeScreen} />
+          <Stack.Screen name="FirstResponderProfile" component={FirstResponderProfileScreen} />
         </Stack.Group>
       ) : (
         <Stack.Group>

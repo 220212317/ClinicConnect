@@ -37,6 +37,7 @@ export type RootStackParamList = {
   PatientDetailView: { patientId: string };
   PatientSearch: undefined;
   FirstResponderHome: undefined;
+  FirstResponderProfile: undefined;
 };
 
 declare global {
