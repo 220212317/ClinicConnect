@@ -11,6 +11,12 @@ import {
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../../navigation/types';
+
+type NavigationProp = StackNavigationProp<RootStackParamList>;
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface ActiveAlert {
   alertId: string;
@@ -51,7 +57,8 @@ const resolvedAlerts: ResolvedAlert[] = [
 
 // ── Component ─────────────────────────────────────────────────────────────────
 const FirstResponderHomeScreen: React.FC = () => {
-  const [dispatched, setDispatched] = useState(false);
+  const navigation = useNavigation<NavigationProp>();
+  const [dispatched, setDispatched] = useState(false);
 
   const handleDispatch = () => {
     Alert.alert(
@@ -78,9 +85,12 @@ const FirstResponderHomeScreen: React.FC = () => {
           <Text style={styles.headerTitle}>Responder dashboard</Text>
           <Text style={styles.headerSub}>A. Radebe · On call</Text>
         </View>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>AR</Text>
-        </View>
+       <TouchableOpacity
+  style={styles.avatar}
+  onPress={() => navigation.navigate('FirstResponderProfile')}
+>
+  <Text style={styles.avatarText}>AR</Text>
+</TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
