@@ -22,8 +22,6 @@ import AlertsScreen from '../screens/patient/AlertsScreen';
 import BookAppointmentScreen from '../screens/appointments/BookAppointmentScreen';
 import AppointmentDetailScreen from '../screens/appointments/AppointmentDetailScreen';
 import PatientClinicDetailScreen from '../screens/patient/ClinicDetailScreen';
-
-// TEMP PREVIEW: added so we can preview SelectClinicScreen — REMOVE before commit
 import SelectClinicScreen from '../screens/appointments/SelectClinicScreen';
 
 // Admin Screens
@@ -79,11 +77,9 @@ export default function AppNavigator() {
     );
   }
 
-  // TEMP PREVIEW: forcing straight to SelectClinic — REVERT to the commented line below before commit
-  const initialRouteName: keyof RootStackParamList = 'SelectClinic';
-  // const initialRouteName: keyof RootStackParamList = user
-  //   ? getHomeRouteForRole(role)
-  //   : 'Login';
+  const initialRouteName: keyof RootStackParamList = user
+    ? getHomeRouteForRole(role)
+    : 'Login';
 
   return (
     <Stack.Navigator
@@ -93,10 +89,8 @@ export default function AppNavigator() {
       }}
       initialRouteName={initialRouteName}
     >
-      {/* TEMP PREVIEW: changed "user ?" to "true ?" so this group renders without login — REVERT before commit */}
-      {true ? (
+      {user ? (
         <Stack.Group>
-          {/* TEMP PREVIEW: added so we can preview it — REMOVE before commit */}
           <Stack.Screen name="SelectClinic" component={SelectClinicScreen} />
 
           {/* Patient Screens */}
