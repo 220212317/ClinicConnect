@@ -16,6 +16,7 @@ export type RootStackParamList = {
   AppointmentDetail: { appointmentId: string };
   Notifications: undefined;
   Emergency: undefined;
+  EmergencySuccess: undefined;
   HealthTips: undefined;
   Alerts: undefined;
   ClinicDetails: { clinicId: string };

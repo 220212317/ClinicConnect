@@ -15,7 +15,8 @@ import NearbyClinicsScreen from '../screens/patient/NearbyClinicsScreen';
 import MedicalRecordScreen from '../screens/medical/MedicalRecordScreen';
 import PatientProfileScreen from '../screens/patient/PatientProfileScreen';
 import NotificationsScreen from '../screens/notifications/NotificationsScreen';
-import EmergencyScreen from '../screens/emergency/EmergencyScreen';
+import EmergencyScreen from '../screens/patient/EmergencyScreen';
+import EmergencySuccessScreen from '../screens/patient/EmergencySuccessScreen';
 import HealthTipsScreen from '../screens/patient/HealthTipsScreen';
 import AlertsScreen from '../screens/patient/AlertsScreen';
 import BookAppointmentScreen from '../screens/appointments/BookAppointmentScreen';
@@ -102,6 +103,7 @@ export default function AppNavigator() {
           <Stack.Screen name="AppointmentDetail" component={AppointmentDetailScreen} initialParams={{ appointmentId: '' }} />
           <Stack.Screen name="Notifications" component={NotificationsScreen} />
           <Stack.Screen name="Emergency" component={EmergencyScreen} />
+          <Stack.Screen name="EmergencySuccess" component={EmergencySuccessScreen} />
           <Stack.Screen name="HealthTips" component={HealthTipsScreen} />
           <Stack.Screen name="Alerts" component={AlertsScreen} />
           <Stack.Screen name="ClinicDetails" component={PatientClinicDetailScreen} initialParams={{ clinicId: '' }} />
