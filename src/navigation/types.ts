@@ -20,7 +20,11 @@ export type RootStackParamList = {
   HealthTips: undefined;
   Alerts: undefined;
   ClinicDetails: { clinicId: string };
+  SelectService: { clinicId: string };
   ServiceDetails: { serviceId: string };
+  SelectTimeSlot: { clinicId: string; serviceId: string };
+  ConfirmBooking: { clinicId: string; serviceId: string; timeSlotId: string };
+  Success: { appointmentId: string };
   
   // Admin/Staff Screens
   AdminDashboard: undefined;
