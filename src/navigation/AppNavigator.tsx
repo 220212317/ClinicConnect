@@ -23,6 +23,9 @@ import BookAppointmentScreen from '../screens/appointments/BookAppointmentScreen
 import AppointmentDetailScreen from '../screens/appointments/AppointmentDetailScreen';
 import PatientClinicDetailScreen from '../screens/patient/ClinicDetailScreen';
 
+// TEMP PREVIEW: added so we can preview SelectClinicScreen — REMOVE before commit
+import SelectClinicScreen from '../screens/appointments/SelectClinicScreen';
+
 // Admin Screens
 import AdminDashboardScreen from '../screens/admin/AdminDashboardScreen';
 import StaffListScreen from '../screens/admin/StaffListScreen';
@@ -47,10 +50,6 @@ import { useAuth, AppRole } from '../context/AuthContext';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
-// Maps a resolved role to the screen that role should land on after login
-// or on reopening the app with a valid session. Falls back to 'Login' when
-// there's no resolved role yet (session exists but the patient/staff lookup
-// hasn't completed).
 function getHomeRouteForRole(role: AppRole): keyof RootStackParamList {
   switch (role) {
     case 'patient':
@@ -80,9 +79,11 @@ export default function AppNavigator() {
     );
   }
 
-  const initialRouteName: keyof RootStackParamList = user
-    ? getHomeRouteForRole(role)
-    : 'Login';
+  // TEMP PREVIEW: forcing straight to SelectClinic — REVERT to the commented line below before commit
+  const initialRouteName: keyof RootStackParamList = 'SelectClinic';
+  // const initialRouteName: keyof RootStackParamList = user
+  //   ? getHomeRouteForRole(role)
+  //   : 'Login';
 
   return (
     <Stack.Navigator
@@ -92,8 +93,12 @@ export default function AppNavigator() {
       }}
       initialRouteName={initialRouteName}
     >
-      {user ? (
+      {/* TEMP PREVIEW: changed "user ?" to "true ?" so this group renders without login — REVERT before commit */}
+      {true ? (
         <Stack.Group>
+          {/* TEMP PREVIEW: added so we can preview it — REMOVE before commit */}
+          <Stack.Screen name="SelectClinic" component={SelectClinicScreen} />
+
           {/* Patient Screens */}
           <Stack.Screen name="PatientHome" component={PatientHomeScreen} />
           <Stack.Screen name="PatientProfile" component={PatientProfileScreen} />
