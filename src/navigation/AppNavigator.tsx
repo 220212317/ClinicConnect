@@ -23,6 +23,7 @@ import BookAppointmentScreen from '../screens/appointments/BookAppointmentScreen
 import AppointmentDetailScreen from '../screens/appointments/AppointmentDetailScreen';
 import PatientClinicDetailScreen from '../screens/patient/ClinicDetailScreen';
 import SelectClinicScreen from '../screens/appointments/SelectClinicScreen';
+import SelectServiceScreen from '../screens/appointments/SelectServiceScreen';
 
 // Admin Screens
 import AdminDashboardScreen from '../screens/admin/AdminDashboardScreen';
@@ -92,6 +93,7 @@ export default function AppNavigator() {
       {user ? (
         <Stack.Group>
           <Stack.Screen name="SelectClinic" component={SelectClinicScreen} />
+          <Stack.Screen name="SelectService" component={SelectServiceScreen} />
 
           {/* Patient Screens */}
           <Stack.Screen name="PatientHome" component={PatientHomeScreen} />
