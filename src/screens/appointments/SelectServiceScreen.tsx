@@ -76,14 +76,13 @@ export default function SelectServiceScreen() {
   };
 
   const handleCancel = () => {
-    // Assumption: Cancel exits the whole booking flow, not just this step.
     navigation.navigate('NearbyClinics');
   };
 
   return (
     <View style={styles.root}>
-      {(isDesktop || !isWeb) && (
-        <View style={[styles.sidebar, !isDesktop && styles.sidebarMobile]}>
+      {isDesktop && (
+        <View style={styles.sidebar}>
           <View style={styles.logoRow}>
             <View style={styles.logoBadge}>
               <Ionicons name="add" size={28} color="#FFF" />
@@ -109,7 +108,7 @@ export default function SelectServiceScreen() {
       >
         <SafeAreaView style={styles.safeArea}>
           <ScrollView
-            contentContainerStyle={styles.scrollContent}
+            contentContainerStyle={[styles.scrollContent, !isDesktop && styles.scrollContentMobile]}
             showsVerticalScrollIndicator={false}
           >
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
@@ -119,15 +118,20 @@ export default function SelectServiceScreen() {
             <Text style={styles.title}>Book an appointment</Text>
             <Text style={styles.stepText}>Step 2 of 4 - Service</Text>
 
-            <View style={styles.searchContainer}>
-              <Ionicons name="search-outline" size={18} color="#999" style={styles.searchIcon} />
+            <View style={[styles.searchContainer, !isDesktop && styles.searchContainerMobile]}>
+              {isDesktop && (
+                <Ionicons name="search-outline" size={18} color="#999" style={styles.searchIconLeft} />
+              )}
               <TextInput
                 style={styles.searchInput}
-                placeholder="Search service by name..."
+                placeholder={isDesktop ? 'Search service by name...' : 'search service...'}
                 placeholderTextColor="#999"
                 value={searchQuery}
                 onChangeText={setSearchQuery}
               />
+              {!isDesktop && (
+                <Ionicons name="search-outline" size={18} color="#999" style={styles.searchIconRight} />
+              )}
             </View>
 
             <Text style={styles.sectionLabel}>SELECT SERVICE</Text>
@@ -214,9 +218,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 40,
   },
-  sidebarMobile: {
-    display: 'none',
-  },
   logoRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -267,6 +268,9 @@ const styles = StyleSheet.create({
     paddingTop: 24,
     paddingBottom: 40,
   },
+  scrollContentMobile: {
+    paddingHorizontal: 20,
+  },
   backButton: {
     width: 40,
     height: 40,
@@ -300,8 +304,15 @@ const styles = StyleSheet.create({
     marginBottom: 28,
     maxWidth: 460,
   },
-  searchIcon: {
+  searchContainerMobile: {
+    maxWidth: undefined,
+    width: '100%',
+  },
+  searchIconLeft: {
     marginRight: 8,
+  },
+  searchIconRight: {
+    marginLeft: 8,
   },
   searchInput: {
     flex: 1,
