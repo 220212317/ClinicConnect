@@ -78,13 +78,11 @@ export default function SelectTimeSlotScreen() {
 
   const formatTimeDisplay = (start: string, end: string) => `${start} - ${end}`;
 
-  // Unique available dates, sorted chronologically
   const dateOptions = useMemo(() => {
     const unique = Array.from(new Set(allSlots.map((s) => s.date))).sort();
     return unique.map(formatDateDisplay);
   }, [allSlots]);
 
-  // Slots available for the currently selected date
   const slotsForSelectedDate = useMemo(() => {
     if (!selectedDate) return [];
     return allSlots
@@ -99,7 +97,7 @@ export default function SelectTimeSlotScreen() {
 
   const handleSelectDate = (dateDisplay: string) => {
     setSelectedDate(dateDisplay);
-    setSelectedTime(''); // reset time when date changes
+    setSelectedTime('');
   };
 
   const canContinue = selectedDate !== '' && selectedTime !== '';
@@ -122,8 +120,8 @@ export default function SelectTimeSlotScreen() {
 
   return (
     <View style={styles.root}>
-      {(isDesktop || !isWeb) && (
-        <View style={[styles.sidebar, !isDesktop && styles.sidebarMobile]}>
+      {isDesktop && (
+        <View style={styles.sidebar}>
           <View style={styles.logoRow}>
             <View style={styles.logoBadge}>
               <Ionicons name="add" size={28} color="#FFF" />
@@ -149,7 +147,7 @@ export default function SelectTimeSlotScreen() {
       >
         <SafeAreaView style={styles.safeArea}>
           <ScrollView
-            contentContainerStyle={styles.scrollContent}
+            contentContainerStyle={[styles.scrollContent, !isDesktop && styles.scrollContentMobile]}
             showsVerticalScrollIndicator={false}
           >
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
@@ -245,9 +243,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 40,
   },
-  sidebarMobile: {
-    display: 'none',
-  },
   logoRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -297,6 +292,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     paddingTop: 24,
     paddingBottom: 40,
+  },
+  scrollContentMobile: {
+    paddingHorizontal: 20,
   },
   backButton: {
     width: 40,
