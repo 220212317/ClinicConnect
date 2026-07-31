@@ -40,7 +40,6 @@ export default function SelectClinicScreen() {
   const isWeb = Platform.OS === 'web';
   const isDesktop = isWeb && width >= 1024;
 
-  // Derive user initials for the sidebar avatar (patient or staff, whichever is logged in)
   const getInitials = () => {
     const first = profile?.first_name || staffProfile?.first_name || '';
     const last = profile?.last_name || staffProfile?.last_name || '';
@@ -110,9 +109,9 @@ export default function SelectClinicScreen() {
 
   return (
     <View style={styles.root}>
-      {/* Sidebar - visible on desktop/web, hidden on narrow mobile widths */}
-      {(isDesktop || !isWeb) && (
-        <View style={[styles.sidebar, !isDesktop && styles.sidebarMobile]}>
+      {/* Sidebar - desktop web ONLY, never on native mobile or narrow web */}
+      {isDesktop && (
+        <View style={styles.sidebar}>
           <View style={styles.logoRow}>
             <View style={styles.logoBadge}>
               <Ionicons name="add" size={28} color="#FFF" />
@@ -129,7 +128,6 @@ export default function SelectClinicScreen() {
         </View>
       )}
 
-      {/* Main content */}
       <LinearGradient
         colors={['#B08968', '#FFFFFF', '#FFFFFF']}
         locations={[0, 0.35, 0.6]}
@@ -138,7 +136,10 @@ export default function SelectClinicScreen() {
         style={styles.mainContent}
       >
         <SafeAreaView style={styles.safeArea}>
-          <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            contentContainerStyle={[styles.scrollContent, !isDesktop && styles.scrollContentMobile]}
+            showsVerticalScrollIndicator={false}
+          >
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
               <Ionicons name="arrow-back" size={20} color="#FFF" />
             </TouchableOpacity>
@@ -146,15 +147,20 @@ export default function SelectClinicScreen() {
             <Text style={styles.title}>Book an appointment</Text>
             <Text style={styles.stepText}>Step 1 of 4 - Clinic</Text>
 
-            <View style={styles.searchContainer}>
-              <Ionicons name="search-outline" size={18} color="#999" style={styles.searchIcon} />
+            <View style={[styles.searchContainer, !isDesktop && styles.searchContainerMobile]}>
+              {isDesktop && (
+                <Ionicons name="search-outline" size={18} color="#999" style={styles.searchIconLeft} />
+              )}
               <TextInput
                 style={styles.searchInput}
-                placeholder="Search clinics by name or area..."
+                placeholder={isDesktop ? 'Search clinics by name or area...' : 'search clinic...'}
                 placeholderTextColor="#999"
                 value={searchQuery}
                 onChangeText={setSearchQuery}
               />
+              {!isDesktop && (
+                <Ionicons name="search-outline" size={18} color="#999" style={styles.searchIconRight} />
+              )}
             </View>
 
             <Text style={styles.sectionLabel}>SELECT CLINIC</Text>
@@ -229,9 +235,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 40,
   },
-  sidebarMobile: {
-    display: 'none',
-  },
   logoRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -282,6 +285,9 @@ const styles = StyleSheet.create({
     paddingTop: 24,
     paddingBottom: 40,
   },
+  scrollContentMobile: {
+    paddingHorizontal: 20,
+  },
   backButton: {
     width: 40,
     height: 40,
@@ -315,8 +321,15 @@ const styles = StyleSheet.create({
     marginBottom: 28,
     maxWidth: 460,
   },
-  searchIcon: {
+  searchContainerMobile: {
+    maxWidth: undefined,
+    width: '100%',
+  },
+  searchIconLeft: {
     marginRight: 8,
+  },
+  searchIconRight: {
+    marginLeft: 8,
   },
   searchInput: {
     flex: 1,
