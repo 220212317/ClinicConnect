@@ -17,12 +17,14 @@ import PatientProfileScreen from '../screens/patient/PatientProfileScreen';
 import NotificationsScreen from '../screens/notifications/NotificationsScreen';
 import EmergencyScreen from '../screens/patient/EmergencyScreen';
 import EmergencySuccessScreen from '../screens/patient/EmergencySuccessScreen';
-import HealthTipsScreen from '../screens/patient/HealthTipsScreen';
+import HealthTipDetailScreen from '../screens/patient/HealthTipDetailScreen';
 import AlertsScreen from '../screens/patient/AlertsScreen';
 import BookAppointmentScreen from '../screens/appointments/BookAppointmentScreen';
 import AppointmentDetailScreen from '../screens/appointments/AppointmentDetailScreen';
+import AppointmentHistoryScreen from '../screens/appointments/AppointmentHistoryScreen';
 import PatientClinicDetailScreen from '../screens/patient/ClinicDetailScreen';
 import SelectClinicScreen from '../screens/appointments/SelectClinicScreen';
+import ConfirmBookingScreen from '../screens/appointments/ConfirmBookingScreen';
 
 // Admin Screens
 import AdminDashboardScreen from '../screens/admin/AdminDashboardScreen';
@@ -46,7 +48,11 @@ import FirstResponderProfileScreen from '../screens/emergency/FirstResponderProf
 import { RootStackParamList } from './types';
 import { useAuth, AppRole } from '../context/AuthContext';
 
-const Stack = createStackNavigator<RootStackParamList>();
+type AppStackParamList = RootStackParamList & {
+  AppointmentHistory: undefined;
+};
+
+const Stack = createStackNavigator<AppStackParamList>();
 
 function getHomeRouteForRole(role: AppRole): keyof RootStackParamList {
   switch (role) {
@@ -99,13 +105,16 @@ export default function AppNavigator() {
           <Stack.Screen name="MedicalRecord" component={MedicalRecordScreen} />
           <Stack.Screen name="NearbyClinics" component={NearbyClinicsScreen} />
           <Stack.Screen name="BookAppointment" component={BookAppointmentScreen} initialParams={{ clinicId: '' }} />
+          <Stack.Screen name="ConfirmBooking" component={ConfirmBookingScreen} />
           <Stack.Screen name="AppointmentDetail" component={AppointmentDetailScreen} initialParams={{ appointmentId: '' }} />
+          <Stack.Screen name="AppointmentHistory" component={AppointmentHistoryScreen} />
           <Stack.Screen name="Notifications" component={NotificationsScreen} />
           <Stack.Screen name="Emergency" component={EmergencyScreen} />
           <Stack.Screen name="EmergencySuccess" component={EmergencySuccessScreen} />
-          <Stack.Screen name="HealthTips" component={HealthTipsScreen} />
+          <Stack.Screen name="HealthTips" component={HealthTipDetailScreen} />
           <Stack.Screen name="Alerts" component={AlertsScreen} />
           <Stack.Screen name="ClinicDetails" component={PatientClinicDetailScreen} initialParams={{ clinicId: '' }} />
+          
 
           {/* Admin Screens */}
           <Stack.Screen name="AdminDashboard" component={AdminDashboardScreen} />
