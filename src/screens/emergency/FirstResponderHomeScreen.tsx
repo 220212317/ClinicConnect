@@ -77,7 +77,7 @@ const FirstResponderHomeScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor={styles.header.backgroundColor} />
+      <StatusBar barStyle="light-content" />
 
       {/* ── Header ── */}
       <View style={styles.header}>

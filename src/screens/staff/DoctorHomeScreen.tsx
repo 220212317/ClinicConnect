@@ -139,7 +139,7 @@ const DoctorHomeScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor="#0F1B35" />
+      <StatusBar barStyle="light-content" />
 
       <View style={styles.container}>
         {/* ── Sidebar ── */}

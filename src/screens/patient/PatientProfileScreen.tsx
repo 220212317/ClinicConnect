@@ -235,7 +235,7 @@ export default function PatientProfileScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F5F5F5" />
+      <StatusBar barStyle="dark-content" />
 
       <LinearGradient
         colors={['#B08968', '#FFFFFF', '#FFFFFF']}

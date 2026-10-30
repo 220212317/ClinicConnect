@@ -144,7 +144,7 @@ const NurseHomeScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor={HEADER_BG} />
+      <StatusBar barStyle="light-content" />
 
       {/* Header */}
       <View style={styles.header}>
