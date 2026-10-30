@@ -285,7 +285,7 @@ export default function PatientHomeScreen() {
       style={styles.gradientContainer}
     >
       <SafeAreaView style={styles.safeArea}>
-        <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+        <StatusBar barStyle="dark-content" />
 
         <ScrollView
           showsVerticalScrollIndicator={false}

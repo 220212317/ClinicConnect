@@ -138,7 +138,7 @@ export default function NurseProfileScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F5F5F5" />
+      <StatusBar barStyle="dark-content" />
 
       <LinearGradient
         colors={['#0F1B35', '#1E2D4E', '#F5F5F5']}

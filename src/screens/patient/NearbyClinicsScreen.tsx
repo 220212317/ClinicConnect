@@ -435,7 +435,7 @@ export default function NearbyClinicsScreen() {
       style={styles.gradientContainer}
     >
       <SafeAreaView style={styles.safeArea}>
-        <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+        <StatusBar barStyle="dark-content" />
 
         <Animated.View style={{ opacity: headerOpacity }}>
           <View style={styles.header}>
