@@ -29,7 +29,8 @@
       "expo-image-picker",
       "expo-asset",
       "expo-font",
-      "expo-status-bar"
+      "expo-status-bar",
+      "@react-native-community/datetimepicker"
     ]
   }
 }
